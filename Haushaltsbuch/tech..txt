@@ -1,0 +1,21 @@
+The JavaScript logic is organized into the following modules.
+
+DOM: Holds references to all important elements.
+Utils: A collection of helper functions (e.g., date parsing, modals, status messages).
+Store: States (transaction data, rules). Uses a publish-subscribe logik.
+MainController: Controls page visibility.
+ImportModule: CSV and JSON file imports.
+CategorizeModule: The main data table and the rule creation UI.
+VisualizeModule: Al charts and detailed tables on the visualization page.
+Internationalization: Translations and Currency settings support via trans.js ( data-i18n attr).
+IconLoader.js: A lightweight, zero-dependency solution for rendering eg FontAwesome SVG icons locally. 
+
+All functions are JSDoc annotated.
+
+Libraries:
+
+Tailwind CSS:  CSS framework
+Tabulator.js:  data grids
+Chart.js: pie charts and line charts
+PapaParse.js: parse CSV files
+Font Awesome: UI icons

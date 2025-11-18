@@ -1,0 +1,3057 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<!-- Thorstens free n friendly Haushaltsbuch, copyright 2024-
+	This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	Also add information on how to contact you by electronic and paper mail.
+ -->
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0">
+    <title>Thorstens Haushaltsbuch</title> 
+	<link rel="stylesheet" href="lib/tabulator.css">
+	<script type="text/javascript" src="lib/iconloader.js"></script>
+	<script type="text/javascript" src="lib/papaparse.js"></script>
+    <script type="text/javascript" src="lib/tabulator.js"></script>
+	<script type="text/javascript" src="lib/tailwind.js"></script>
+    <script type="text/javascript" src="lib/chart.js"></script>
+    <style>
+		:root {
+            --color-scheme: #10ABA2;
+            --color-scheme-hover: #069595; /* Darker version for hover */
+        }
+		html {
+			font-size: 90%; 
+		}
+        /* Überschreiben einiger Tabulator Styles wg besserer Integration in Tailwind */
+        .tabulator {
+            border: none;
+            background-color: rgb(249 250 251); /* bg-gray-50 */
+            height: 100%; /* Wichtig für Tabellen in Tabs */
+        }
+        .tabulator .tabulator-header {
+            border-bottom: 1px solid rgb(229 231 235);
+            background-color: rgb(243 244 246);
+			font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .tabulator .tabulator-row {
+            border-bottom: 1px solid rgb(229 231 235);
+            background-color: white;
+        }
+        .tabulator .tabulator-row:hover {
+            background-color: rgb(243 244 246) !important;
+        }
+		.tabulator .tabulator-cell {
+			padding: 4px 6px; /* Padding um ca. 30% reduziert */
+			font-size: 0.85rem; /* Etwas kleinere Schrift */
+			border-right: 1px solid rgb(229 231 235); /* Hellgraue Spalten Trennlinie */
+		}
+        /* Fix für Tick/Cross Editor */
+        .tabulator-cell[tabulator-field="Fixkosten"] {
+            cursor: pointer;
+        }
+		
+		/* CSV Spaltenzuordnung */
+        #mappingInstruction span {
+            margin: 0 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        #mappingInstruction span.mapped {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            text-decoration: line-through;
+        }
+        #mappingInstruction span.current {
+            background-color: #dbeafe; /* blue-100 */
+            color: #1d4ed8; /* blue-700 */
+            font-weight: 700;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+        #previewMappingTable th {
+            padding: 8px 12px;
+            background-color: #f3f4f6; /* gray-200 */
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #previewMappingTable th:hover {
+            background-color: #e5e7eb; /* gray-300 */
+        }
+        #previewMappingTable th.mapped-header {
+            background-color: #d1d5db; /* gray-400 */
+            color: #6b7280; /* gray-500 */
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        #previewMappingTable td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+		
+        /* Visualisierung -> NavLeiste */ 
+        .tab-btn {
+            padding: 0.55rem 0.55rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280; /* text-gray-500 */
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .tab-btn:hover {
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937; /* text-gray-800 */
+        }
+        .tab-btn.active {
+            color: var(--color-scheme); /* text-blue-600 */
+            border-bottom-color: var(--color-scheme); /* border-blue-600 */
+        }
+		
+		/* Visualisierung -> DetailsNav */
+        .details-tab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #4b5563; /* text-gray-600 */
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+        .details-tab-btn:hover {
+            background-color: #f3f4f6; /* bg-gray-200 */
+        }
+        .details-tab-btn.active {
+            font-weight: 700;
+            color: #1f2937; /* text-gray-800 */
+            background-color: #fff;
+            border-top: 1px solid #d1d5db;
+            border-left: 1px solid #d1d5db;
+            border-right: 1px solid #d1d5db;
+            border-bottom: 1px solid #fff; /* Verdeckt die untere Kante */
+            border-radius: 0.375rem 0.375rem 0 0;
+            position: relative;
+            top: 1px; /* Rückt den Tab nach oben */
+        }
+		
+		.text-3xs { font-size: 0.5rem; } /* 8px */
+        .text-2xs { font-size: 0.625rem; } /* 10px */
+		
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen flex flex-col font-sans">
+
+    <header class="bg-white shadow p-3 flex justify-between items-center flex-none z-10">
+        <h1 class="text-xl font-bold text-[var(--color-scheme)] flex items-center gap-2">
+            </h1>
+        <nav id="headerNav" class="flex gap-2 hidden">
+            <button id="navHomeBtn" class="px-3 py-1 rounded text-sm transition flex items-center gap-2 text-gray-500 hover:bg-gray-100">
+                </button>
+            <button id="navImportBtn" class="px-3 py-1 rounded text-sm transition"></button>
+            <button id="navCategorizeBtn" class="px-3 py-1 rounded text-sm transition"></button>
+            <button id="navVisualizeBtn" class="px-3 py-1 rounded text-sm transition"></button>
+        </nav>
+        <div id="headerActions" class="flex gap-4 items-center hidden">
+            <button id="resetBtn" class="hidden flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition">
+                </button>
+             <button id="saveJsonBtn" class="hidden flex items-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-3 py-1 rounded transition">
+                </button>
+             <button id="exportBtn" class="hidden flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition">
+                </button>
+        </div>
+    </header>
+    <div id="statusBar" class="bg-blue-50 p-2 text-sm text-blue-800 text-center border-b border-blue-100 hidden flex-none">
+        </div>
+    <main id="pageHome" class="flex-grow flex flex-col items-center justify-center p-6">
+        <div class="bg-white p-5 rounded-lg shadow-xl text-center max-w-xl w-full relative"> <i class="fas fa-person text-8xl text-[var(--color-scheme)] mb-8"></i>
+            <h2 id="homeWelcomeTitle" class="text-3xl font-bold mb-4" data-i18n="home_welcome_title"></h2>
+            <p class="text-gray-600 mb-5 text-lg" data-i18n="home_welcome_text"></p>
+            
+            <div class="flex flex-col md:flex-row gap-6">
+                <button id="startNewBtn" class="flex-1 flex flex-col items-center gap-4 bg-blue-50 hover:bg-blue-100 text-blue-700 p-6 rounded-lg transition border border-blue-200 shadow-sm">
+                    <i class="fas fa-file-import text-4xl"></i>
+                    <span class="text-xl font-semibold" data-i118n="home_btn_new"></span>
+                    <span class="text-sm text-gray-600" data-i18n="home_btn_new_desc"></span>
+                </button>
+                
+                <button id="loadSessionBtn" class="flex-1 flex flex-col items-center gap-4 bg-gray-50 hover:bg-gray-100 text-gray-700 p-6 rounded-lg transition border border-gray-200 shadow-sm">
+                    <i class="fas fa-folder-open text-4xl"></i>
+                    <span class="text-xl font-semibold" data-i18n="home_btn_load"></span>
+                    <span class="text-sm text-gray-600" data-i18n="home_btn_load_desc"></span>
+                </button>
+            </div>
+            
+			<div class="bg-white pt-3 rounded-lg text-center max-w-xl w-full relative"> 
+				<span>b45, by Thorsten 2025</span>
+				<button id="infoBtn" class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-xs font-medium" data-i18n="home_btn_info"></button>  
+			</div>
+        </div>
+    </main>
+
+    <main id="pageImport" class="flex-grow flex flex-col items-center justify-center p-6 hidden">
+        <div id="importInitialStep" class="bg-white p-6 rounded-lg shadow-xl text-center max-w-lg w-full">
+            <i class="fas fa-file-import text-6xl text-[var(--color-scheme)] mb-6"></i>
+            <h2 class="text-2xl font-semibold mb-4" data-i18n="import_title"></h2>
+            <p class="text-gray-600 mb-8" data-i18n="import_desc"></p>
+            <div class="flex items-center justify-center gap-6 mb-6">
+                <div class="flex items-center gap-2">
+                    <label for="delimiterInput" class="text-gray-600 font-medium" data-i18n="label_delimiter"></label>
+                    <input type="text" id="delimiterInput" value=";" maxlength="1" class="w-12 p-2 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-center font-mono" title="CSV Trennzeichen" />
+                </div>
+                </div>
+
+            <label class="w-full flex items-center justify-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-6 py-3 rounded-lg cursor-pointer transition text-lg font-medium">
+                <i class="fas fa-upload"></i>
+                <span data-i18n="btn_import_csv"></span>
+                <input type="file" id="csvInput" accept=".csv" class="hidden" />
+            </label>
+        </div>
+
+        <div id="importMappingStep" class="hidden bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full">
+            <h2 class="text-2xl font-semibold mb-4 text-center" data-i18n="mapping_title"></h2>
+            <p id="mappingInstruction" class="text-gray-700 text-center mb-6 p-4 bg-gray-50 rounded border">
+                </p>
+				
+            <div class="overflow-x-auto border rounded-lg">
+                <table id="previewMappingTable" class="w-full min-w-full text-left table-auto">
+                    <thead id="previewMappingTableHead">
+                        </thead>
+                    <tbody id="previewMappingTableBody">
+                        </tbody>
+                </table>
+            </div>
+            
+            <button id="cancelMappingBtn" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition" data-i18n="mapping_btn_cancel">
+            </button>
+        </div>
+
+    </main>
+
+    <main id="pageLoadJson" class="flex-grow flex flex-col items-center justify-center p-6 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-lg w-full">
+            <i class="fas fa-folder-open text-6xl text-[var(--color-scheme)] mb-6"></i>
+            <h2 class="text-2xl font-semibold mb-4" data-i18n="load_json_title"></h2>
+            <p class="text-gray-600 mb-8" data-i18n="load_json_desc"></p>
+            
+            <label class="w-full flex items-center justify-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-6 py-3 rounded-lg cursor-pointer transition text-lg font-medium">
+                <i class="fas fa-upload"></i>
+                <span data-i18n="btn_load_json"></span>
+                <input type="file" id="jsonInput" accept=".json" class="hidden" />
+            </label>
+        </div>
+    </main>
+
+    <main id="pageCategorize" class="flex-grow flex flex-col overflow-hidden hidden p-4 lg:p-6 w-full mx-auto">
+        
+        <section class="flex-grow flex flex-col overflow-hidden mb-4">
+             <div id="table-container" class="flex-grow bg-white rounded shadow overflow-hidden relative">
+                 <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                     <i class="fas fa-table text-6xl mb-4 opacity-20"></i>
+                     <p class="text-xl" data-i18n="categorize_table_empty"></p>
+                     <p class="text-sm" data-i18n="categorize_table_empty_sub"></p>
+                 </div>
+                 <div id="data-table"></div>
+             </div>
+        </section>
+
+		<section class="flex-none flex gap-4 h-[310px]">
+            
+            <div class="w-1/3 max-w-lg bg-white  flex flex-col overflow-hidden rounded-lg shadow">
+                <div class="p-4 bg-gray-50 flex-none">
+                    <h2 id="rulesTitle" class="font-semibold text-lg mb-4">
+                        </h2>
+                    
+                    <div class="bg-white p-3 rounded shadow-sm space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="rules_search_label"></label>
+                            <input type="text" id="ruleSearch" placeholder="z.B. Miete..." class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" disabled /> 
+                            <div class="text-xs text-gray-500 mt-1 text-right" id="matchCountPreview">0 <span data-i18n="rules_match_preview"></span></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="rules_category_label"></label>
+                            <input type="text" 
+                                id="ruleCategory" 
+                                list="categoryDatalist" 
+                                class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" 
+                                data-i18n="rules_category_placeholder"
+                                disabled /> 
+                            <datalist id="categoryDatalist">
+                                </datalist>
+                        </div>
+                        
+                        <div class="flex items-center pt-1">
+                            <input type="checkbox" id="ruleFixkostenCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]" disabled>
+                            <label for="ruleFixkostenCheckbox" class="ml-2 block text-sm text-gray-700 font-medium" data-i18n="rules_fixkosten_label">
+                            </label>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button id="saveRuleBtn" class="w-full bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-3 py-2 rounded text-sm transition" disabled>
+                                <i class="fas fa-save"></i> <span data-i18n="rules_btn_save"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-grow bg-white border border-gray-200 flex flex-col overflow-hidden rounded-lg shadow">
+                <div class="flex-grow overflow-y-auto p-4 bg-gray-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-sm font-bold text-gray-600 uppercase" data-i18n="rules_list_header"></h3>
+                        <div class="flex gap-2">
+                            <button id="deleteAllRulesBtn" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition hidden">
+                                <i class="fas fa-trash-alt"></i> <span data-i18n="rules_btn_delete_all"></span>
+                            </button>
+                            <button id="runAllRulesBtn" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition hidden">
+                                <i class="fas fa-forward"></i> <span data-i18n="rules_btn_run_all"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <ul id="rulesList" class="space-y-1">
+                        <li class="text-gray-500 text-sm italic text-center pt-4" data-i18n="rules_list_empty"></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="pageVisualize" class="flex-grow flex flex-col min-h-0 overflow-hidden hidden p-3 lg:p-6 w-full mx-auto">
+        
+        <nav class="flex-none flex items-center border-b border-gray-200 bg-white rounded-t-lg shadow p-2">
+            <div class="flex items-center flex-1">
+                
+                <button id="visPieTabOverview" class="tab-btn active flex items-center gap-2">
+                    <i class="fas fa-chart-pie text-[var(--color-scheme)]"></i><span data-i18n="vis_tab_pie">Torte</span>
+                </button>
+                <button id="visTabLines" class="tab-btn flex items-center gap-2">
+                    <i class="fas fa-chart-line text-green-500"></i><span data-i18n="vis_tab_lines">Liniendiagramm</span>
+                </button>
+                
+                <button id="visTabScatter" class="tab-btn flex items-center gap-2">
+                    <i class="fas fa-grip fa-braille text-purple-500"></i><span data-i18n="vis_tab_stray">Streudiagramm</span>
+                </button>
+                
+                <button id="visTabDetails" class="tab-btn flex items-center gap-2">
+                    <i class="fas fa-list-ul"></i><span data-i18n="vis_tab_details"></span>
+                </button>
+                </h2>
+            </div>
+            
+            <div id="visDate" class="flex items-center gap-4 flex-none">
+                <div class="flex items-center gap-2">
+                    <label for="dateStart" class="text-sm font-medium text-gray-600" data-i18n="vis_label_from"></label>
+                    <input type="date" id="dateStart" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to"></label>
+                    <input type="date" id="dateEnd" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
+                </div>
+            </div>
+
+            <div class="flex-1"></div>
+        </nav>
+
+        <div class="flex-grow min-h-0 bg-white rounded-b-lg shadow p-4 flex flex-col overflow-hidden">
+            
+		<div id="visPieContentOverview" class="w-full flex-grow flex flex-col">
+			 <div class="flex-grow border border-gray-300 rounded-md bg-gray-50 flex flex-col">
+                 
+                 <div class="flex-none p-2 border-b border-gray-200 bg-gray-100 flex justify-center">
+                    <div class="inline-flex rounded-md shadow-sm" role="group">
+                        <button type="button" id="visOverviewToggleBtn" class="px-3 py-1 text-sm font-medium text-white bg-[var(--color-scheme)] border border-[var(--color-scheme)] rounded-l-lg hover:bg-[var(--color-scheme-hover)]">
+                            <i class="fas fa-wallet mr-2"></i> <span data-i18n="vis_nested_pie_overview">Übersicht</span>
+                        </button>
+                        <button type="button" id="visCategoriesToggleBtn" class="px-3 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100">
+                            <i class="fas fa-tags mr-2"></i> <span data-i18n="vis_nested_pie_expenses">Ausgaben</span>
+                        </button>
+                    </div>
+                 </div>
+
+				 <div class="flex-grow flex flex-col justify-start relative overflow-y-auto h-full px-4 pb-4 pt-1">
+					
+                    <div id="overviewChartContainer" class="w-full h-full flex flex-col">
+    					<div id="chartEmptyStateOverview" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
+    						<i class="fas fa-chart-pie text-6xl mb-4 opacity-20"></i>
+    						<p class="text-xl" data-i118n="vis_chart_overview_empty">Keine Daten für Übersicht</p>
+    					</div>
+    					<div class="relative flex-grow flex flex-col items-center justify-center min-h-0">
+							<div class="relative h-[40vh] w-[80vh]">
+								<canvas id="overviewChart"></canvas>
+							</div>
+						</div>
+                    </div>
+
+                    <div id="categoriesChartContainer" class="w-full h-full flex flex-col hidden"> <div id="chartEmptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
+							<i class="fas fa-search-dollar text-6xl mb-4 opacity-20"></i>
+							<p class="text-xl" data-i18n="vis_chart_empty"></p>
+							<p class="text-sm" data-i18n="vis_chart_empty_sub"></p>
+						</div>
+						<div class="relative flex-grow flex flex-col items-center justify-center min-h-0"> <div class="relative h-[49vh] w-[80vh]">
+								<canvas id="categoriesChart"></canvas>
+							</div>
+						</div>
+                    </div>
+					
+					<div id="summaryDisplay" class="flex-shrink-0 mt-8 pt-6 border-t border-gray-200 w-full max-w-2xl flex justify-around hidden mx-auto">
+						<div class="text-center px-4">
+							<h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide" data-i18n="vis_summary_income"></h3>
+							<p id="totalIncome" class="text-2xl font-bold text-green-600">0,00 €</p>
+						</div>
+						<div class="text-center px-4">
+							<h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide" data-i18n="vis_summary_expenses"></h3>
+							<p id="totalExpenses" class="text-2xl font-bold text-red-600">0,00 €</p>
+						</div>
+						<div class="text-center px-4">
+							<h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide" data-i18n="vis_summary_balance"></h3>
+							<p id="totalBalance" class="text-2xl font-bold text-gray-800">0,00 €</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+        <div id="visContentLines" class="w-full flex-grow flex flex-col hidden">
+             <div class="flex-none p-1 border-b border-gray-300 bg-gray-50 flex items-center">
+                <label for="customLinesInput" class="mr-2 text-sm font-medium text-gray-700" data-i18n="vis_lines_label">Kategorien (Komma-getrennt):</label>
+			<input type="text" id="customLinesInput" placeholder="z.B. top4" class="w-full p-2 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm" value="">
+            </div>
+            
+             <div class="flex-grow border border-t-0 border-gray-300 rounded-b-md bg-gray-50"> 
+				<div class="flex-grow flex flex-col items-center justify-start relative">
+					<div id="chartEmptyStateLines" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
+						<i class="fas fa-chart-line text-6xl mb-4 opacity-20"></i>
+						<p class="text-xl" data-i18n="vis_chart_lines_empty">Keine Daten für Liniendiagramm</p>
+						<p class="text-sm">Bitte Zeitraum prüfen oder Kategorien eingeben.</p>
+					</div>
+					<div class="relative h-[49vh] w-[80vh]">
+						<canvas id="lineChartCanvas"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+        <div id="visContentScatter" class="w-full flex-grow flex flex-col hidden">
+             <div class="flex-grow border border-gray-300 rounded-md bg-gray-50"> 
+                <div class="flex-grow flex flex-col items-center justify-start relative">
+                    <div id="chartEmptyStateScatter" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
+                        <i class="fas fa-braille text-6xl mb-4 opacity-20"></i>
+                        <p class="text-xl">Keine Daten für Streudiagramm</p>
+                        <p class="text-sm">Bitte Zeitraum prüfen.</p>
+                    </div>
+                    <div class="relative h-[49vh] w-[80vh]">
+                        <canvas id="scatterChartCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="visContentDetails" class="w-full hidden min-h-0 flex-grow flex flex-col">
+                <nav class="flex-none flex border-b border-gray-300 bg-gray-50">
+                    <button id="visTabEinnahmen" class="details-tab-btn active flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-green-500"></i><span data-i18n="vis_nested_income"></span>
+                    </button>
+                    <button id="visTabVariableAusgaben" class="details-tab-btn flex items-center gap-2">
+                        <i class="fas fa-minus-circle text-red-500"></i><span data-i18n="vis_nested_variable"></span>
+                    </button>
+                    <button id="visTabFixeAusgaben" class="details-tab-btn flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar text-purple-500"></i><span data-i18n="vis_nested_fixed"></span>
+                    </button>
+                </nav>
+
+                <div class="flex-grow flex-col flex min-h-0 border border-t-0 border-gray-300 rounded-b-md overflow-hidden bg-gray-50">
+                    <div id="visContentEinnahmen" class="flex-grow flex flex-col min-h-0">
+                        <div id="einnahmen-table" class="flex-grow min-h-0"></div>
+                    </div>
+                    <div id="visContentVariableAusgaben" class="flex-grow flex flex-col min-h-0 hidden">
+                        <div id="variable-ausgaben-table" class="flex-grow min-h-0"></div>
+                    </div>
+                    <div id="visContentFixeAusgaben" class="flex-grow flex flex-col min-h-0 hidden">
+                        <div id="fixe-ausgaben-table" class="flex-grow min-h-0"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <h3 id="modalTitle" class="text-lg font-bold mb-3 text-red-600" data-i18n="modal_title_confirm"></h3>
+            <p id="modalMessage" class="text-gray-700 mb-6" data-i18n="modal_message_default"></p>
+            <div class="flex justify-end gap-3">
+                <button id="modalCancelBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition" data-i18n="modal_btn_cancel"></button>
+                <button id="modalConfirmBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition" data-i18n="modal_btn_confirm"></button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="trans.js"></script> 
+    
+    <script>
+        
+        /**
+         * @file Lokales Haushaltsbuch
+         * @description strukturiert in DOM, Utils, Store, MainController und Feature Modulen.
+         */
+
+        /**
+         * @namespace DOM
+         * @description Zentrales Objekt für zwischengespeicherte DOM Element Referenzen und statische Konfigurationswerte.
+         */
+        const DOM = {
+            // Seiten
+            pageHome: document.getElementById('pageHome'), 
+            pageImport: document.getElementById('pageImport'),
+            pageLoadJson: document.getElementById('pageLoadJson'), 
+            pageCategorize: document.getElementById('pageCategorize'),
+            pageVisualize: document.getElementById('pageVisualize'),
+            
+            // Navigation
+            headerNav: document.getElementById('headerNav'), 
+            headerActions: document.getElementById('headerActions'), 
+            navHomeBtn: document.getElementById('navHomeBtn'),
+            navImportBtn: document.getElementById('navImportBtn'),
+            navCategorizeBtn: document.getElementById('navCategorizeBtn'),
+            navVisualizeBtn: document.getElementById('navVisualizeBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            saveJsonBtn: document.getElementById('saveJsonBtn'),
+
+            // Globale Elemente
+            csvInput: document.getElementById('csvInput'),
+            jsonInput: document.getElementById('jsonInput'), 
+            delimiterInput: document.getElementById('delimiterInput'),
+            statusBar: document.getElementById('statusBar'),
+            emptyState: document.getElementById('emptyState'),
+
+            // Home Seite
+            startNewBtn: document.getElementById('startNewBtn'),
+            loadSessionBtn: document.getElementById('loadSessionBtn'),
+            infoBtn: document.getElementById('infoBtn'),
+
+            // Modal
+            confirmationModal: document.getElementById('confirmationModal'),
+            modalContent: document.getElementById('modalContent'),
+            modalTitle: document.getElementById('modalTitle'),
+            modalMessage: document.getElementById('modalMessage'),
+            modalCancelBtn: document.getElementById('modalCancelBtn'),
+            modalConfirmBtn: document.getElementById('modalConfirmBtn'),
+			
+            // Import Schritte
+            importInitialStep: document.getElementById('importInitialStep'),
+            importMappingStep: document.getElementById('importMappingStep'),
+            mappingInstruction: document.getElementById('mappingInstruction'),
+            previewMappingTable: document.getElementById('previewMappingTable'),
+            previewMappingTableHead: document.getElementById('previewMappingTableHead'),
+            previewMappingTableBody: document.getElementById('previewMappingTableBody'),
+            cancelMappingBtn: document.getElementById('cancelMappingBtn'),
+            
+            // Regel Krams
+            rulesTitle: document.getElementById('rulesTitle'),
+            ruleSearch: document.getElementById('ruleSearch'),
+            ruleCategory: document.getElementById('ruleCategory'), 
+            categoryDatalist: document.getElementById('categoryDatalist'),
+            
+            ruleFixkostenCheckbox: document.getElementById('ruleFixkostenCheckbox'),
+            matchCountPreview: document.getElementById('matchCountPreview'),
+            saveRuleBtn: document.getElementById('saveRuleBtn'),
+            rulesList: document.getElementById('rulesList'),
+            runAllRulesBtn: document.getElementById('runAllRulesBtn'),
+            deleteAllRulesBtn: document.getElementById('deleteAllRulesBtn'),
+            
+            // Visualisierungs Krams
+            dateStart: document.getElementById('dateStart'),
+            dateEnd: document.getElementById('dateEnd'),
+            categoriesChart: document.getElementById('categoriesChart'),
+            chartEmptyState: document.getElementById('chartEmptyState'),
+            
+            summaryDisplay: document.getElementById('summaryDisplay'),
+            totalIncome: document.getElementById('totalIncome'),
+            totalExpenses: document.getElementById('totalExpenses'),
+            totalBalance: document.getElementById('totalBalance'),
+
+            visTabDetails: document.getElementById('visTabDetails'),
+            visContentDetails: document.getElementById('visContentDetails'),
+            visTabEinnahmen: document.getElementById('visTabEinnahmen'),
+            visTabVariableAusgaben: document.getElementById('visTabVariableAusgaben'),
+            visTabFixeAusgaben: document.getElementById('visTabFixeAusgaben'),
+            visContentEinnahmen: document.getElementById('visContentEinnahmen'),
+            visContentVariableAusgaben: document.getElementById('visContentVariableAusgaben'),
+            visContentFixeAusgaben: document.getElementById('visContentFixeAusgaben'),
+            einnahmenTableEl: document.getElementById('einnahmen-table'),
+            variableAusgabenTableEl: document.getElementById('variable-ausgaben-table'),
+            fixeAusgabenTableEl: document.getElementById('fixe-ausgaben-table'),
+            
+            // Pie Tabs
+            visPieTabOverview: document.getElementById('visPieTabOverview'),
+            visPieContentOverview: document.getElementById('visPieContentOverview'),
+            
+            // Tortendiagramm: Toggle Buttons und Container 
+            visOverviewToggleBtn: document.getElementById('visOverviewToggleBtn'),
+            visCategoriesToggleBtn: document.getElementById('visCategoriesToggleBtn'),
+            overviewChartContainer: document.getElementById('overviewChartContainer'),
+            categoriesChartContainer: document.getElementById('categoriesChartContainer'),
+
+            overviewChart: document.getElementById('overviewChart'),
+            chartEmptyStateOverview: document.getElementById('chartEmptyStateOverview'),
+            
+            // Liniendiagramm
+            visTabLines: document.getElementById('visTabLines'),
+            visContentLines: document.getElementById('visContentLines'),
+            lineChartCanvas: document.getElementById('lineChartCanvas'),
+            chartEmptyStateLines: document.getElementById('chartEmptyStateLines'),
+            customLinesInput: document.getElementById('customLinesInput'), 
+
+            // Streudiagramm
+            visTabScatter: document.getElementById('visTabScatter'),
+            visContentScatter: document.getElementById('visContentScatter'),
+            scatterChartCanvas: document.getElementById('scatterChartCanvas'),
+            chartEmptyStateScatter: document.getElementById('chartEmptyStateScatter'),
+            
+            /** Felder, die beim CSV Import gemappt werden müssen. */
+            MAPPING_FIELDS: ['Buchungstag', 'Verwendungszweck', 'Betrag'],
+            
+            /** Standardfarben für das Kreisdiagramm. */
+            CHART_COLORS: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+                '#E7E9ED', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#6366F1'
+            ],
+            
+            /** Farben für das Einnahmen/Ausgaben Diagramm. */
+            OVERVIEW_CHART_COLORS: {
+                INCOME: '#10B981',  // green-600
+                EXPENSE: '#FF6384' // Original red
+            },
+            
+            /** Tailwind Klassen für die Navigations Button Zustände. */
+            NAV_STYLES: {
+                BASE: 'px-3 py-1 rounded text-sm transition',
+                ACTIVE: 'bg-blue-100 text-blue-700 font-semibold',
+                INACTIVE: 'text-gray-500 hover:bg-gray-100',
+                DISABLED: 'text-gray-300 cursor-not-allowed'
+            },
+            
+            /** * Standard Währungssymbol. 
+             * Greift auf 'window.currency' zu, das in trans.js definiert werden sollte.
+             * Fallback auf "€", falls nicht definiert.
+             */
+            DEFAULT_CURRENCY: window.currency || "€"
+        };
+
+        /**
+         * @namespace Utils
+         * @description Enthält allgemeine Hilfsfunktionen (z.B. UI, Parsing, Formatierung).
+         */
+        const Utils = (function() {
+            /**
+             * Zeigt eine Statusleiste am oberen Rand der Seite an.
+             * @param {string} msgKey   Der Schlüssel für die Übersetzungsfunktion L().
+             * @param {string} [type='info']   Der Typ der Nachricht ('info', 'success', 'error').
+             * @param {...*} args   Argumente, die an die Übersetzungsfunktion L() übergeben werden.
+             */
+            function showStatus(msgKey, type = 'info', ...args) {
+                const msg = L(msgKey, ...args); // Übersetzung mit Platzhaltern
+                
+                DOM.statusBar.textContent = msg;
+                DOM.statusBar.classList.remove('hidden', 'bg-blue-50', 'text-blue-800', 'bg-red-50', 'text-red-800', 'bg-green-50', 'text-green-800');
+
+                if (type === 'error') DOM.statusBar.classList.add('bg-red-50', 'text-red-800');
+                else if (type === 'success') DOM.statusBar.classList.add('bg-green-50', 'text-green-800');
+                else DOM.statusBar.classList.add('bg-blue-50', 'text-blue-800');
+
+                DOM.statusBar.classList.remove('hidden');
+                setTimeout(() => DOM.statusBar.classList.add('hidden'), 5000);
+            }
+
+            /**
+             * Zeigt ein modales Bestätigungsfenster an.
+             * @param {string} titleKey   Übersetzungs Key für den Titel.
+             * @param {string} messageKey   Übersetzungs Key für die Nachricht.
+             * @param {string} [confirmTextKey='modal_btn_confirm']   Übersetzungs Key für den Bestätigungs Button.
+             * @param {Array<*>} [args=[]]   Argumente, die an die Übersetzungsfunktion L() für die Nachricht übergeben werden.
+             * @param {boolean} [isInfo=false]   Wenn true, wird der Bestätigungs Button ausgeblendet und der Abbrechen Button dient als Schließen.
+             * @returns {Promise<boolean>} Ein Promise, das bei Bestätigung `true` und bei Abbruch `false` auflöst.
+             */
+            function showConfirmationModal(titleKey, messageKey, confirmTextKey = 'modal_btn_confirm', args = [], isInfo = false) {
+                return new Promise(resolve => {
+                    DOM.modalTitle.textContent = L(titleKey);
+                    DOM.modalMessage.textContent = L(messageKey, ...args);
+                    DOM.modalConfirmBtn.textContent = L(confirmTextKey);
+                    
+                    DOM.modalConfirmBtn.classList.toggle('hidden', isInfo); 
+                    // Info-Modus (pgeHome)
+                    DOM.modalCancelBtn.textContent = isInfo ? L("modal_btn_close") : L("modal_btn_cancel");
+                    
+                    DOM.modalTitle.classList.toggle('text-red-600', !isInfo);
+                    DOM.modalTitle.classList.toggle('text-[var(--color-scheme)]', isInfo); // Use var() for info color
+
+                    DOM.confirmationModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        DOM.modalContent.classList.remove('scale-95', 'opacity-0');
+                    }, 10);
+
+                    const confirmHandler = () => {
+                        closeModal();
+                        resolve(true);
+                    };
+                    const cancelHandler = () => {
+                        closeModal();
+                        resolve(false);
+                    };
+
+                    const closeModal = () => {
+                        DOM.modalContent.classList.add('scale-95', 'opacity-0');
+                        setTimeout(() => {
+                            DOM.confirmationModal.classList.add('hidden');
+                        }, 300);
+                        
+                        DOM.modalConfirmBtn.removeEventListener('click', confirmHandler);
+                        DOM.modalCancelBtn.removeEventListener('click', cancelHandler);
+                        DOM.modalCancelBtn.textContent = L("modal_btn_cancel"); 
+                    };
+
+                    DOM.modalConfirmBtn.addEventListener('click', confirmHandler);
+                    DOM.modalCancelBtn.addEventListener('click', cancelHandler);
+                });
+            }
+            
+            /**
+             * Parst ein Datum (String oder Date) und gibt ein Date Objekt oder null zurück.
+             * Unterstützt: YYYY-MM-DD, YYYYMMDD, DD.MM.YYYY, MM/DD/YYYY.
+             * @param {string|Date|null} dateStr   Der zu parsende Datums String.
+             * @returns {Date|null} Ein gültiges Date Objekt oder null.
+             */
+            function parseGermanDate(dateStr) {
+                if (!dateStr) return null;
+                if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+
+                let s = String(dateStr).trim();
+                if (s === '') return null;
+
+                s = s.split('T')[0].split(' ')[0].trim();
+
+                // ISO / einfache Formate
+                if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s)) {
+                    const d = new Date(s.replace(/\//g, '-'));
+                    return isNaN(d.getTime()) ? null : d;
+                }
+
+                // Kompaktformat YYYYMMDD
+                if (/^\d{8}$/.test(s)) {
+                    const y = +s.slice(0, 4);
+                    const m = +s.slice(4, 6);
+                    const d = +s.slice(6, 8);
+                    const date = new Date(y, m - 1, d);
+                    return isNaN(date.getTime()) ? null : date;
+                }
+
+                // Europäisches Format DD.MM.YYYY
+                if (/^\d{1,2}\.\d{1,2}\.\d{2,4}$/.test(s)) {
+                    const [d, m, y] = s.split('.').map(v => parseInt(v, 10));
+                    const year = y < 100 ? (y < 70 ? 2000 + y : 1900 + y) : y;
+                    const date = new Date(year, m - 1, d);
+                    return isNaN(date.getTime()) ? null : date;
+                }
+
+                // US Format MM/DD/YYYY
+                if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(s)) {
+                    const [m, d, y] = s.split('/').map(v => parseInt(v, 10));
+                    const year = y < 100 ? (y < 70 ? 2000 + y : 1900 + y) : y;
+                    const date = new Date(year, m - 1, d);
+                    return isNaN(date.getTime()) ? null : date;
+                }
+
+                const fallback = new Date(s);
+                return isNaN(fallback.getTime()) ? null : fallback;
+            }
+
+            /**
+             * Parst einen Zahlen String robust und gibt eine Zahl zurück.
+             * Entfernt Währungszeichen/Tausender, erkennt , oder . als Dezimaltrenner.
+             * @param {string|number|null} numStr   Der zu parsende Zahlen String.
+             * @returns {number} Die geparste Zahl (0 bei Fehler).
+             */
+            function parseGermanNumber(numStr) {
+                if (numStr === null || numStr === undefined) return 0;
+                if (typeof numStr === 'number' && !isNaN(numStr)) return numStr;
+
+                let s = String(numStr).trim();
+                if (s === '') return 0;
+
+                const isNegative = /^\s*\(.*\)\s*$/.test(s);
+                const cleanedS = s.replace(/[^0-9\.,\-\+eE\s\u00A0\u202F']/g, '')
+                                .replace(/[\s\u00A0\u202F']/g, '')
+                                .replace(/^\s*\(|\)\s*$/g, ''); // Entferne Klammern nach negativer Prüfung
+                
+                const lastComma = cleanedS.lastIndexOf(',');
+                const lastDot = cleanedS.lastIndexOf('.');
+                
+                let processedS = cleanedS;
+
+                if (lastComma !== -1 && lastDot !== -1) {
+                    if (lastComma > lastDot) processedS = cleanedS.replace(/\./g, '').replace(',', '.');
+                    else processedS = cleanedS.replace(/,/g, '');
+                } else if (lastComma !== -1) {
+                    const after = cleanedS.slice(lastComma + 1);
+                    processedS = (/^\d{1,3}$/.test(after)) ? cleanedS.replace(',', '.') : cleanedS.replace(/,/g, '');
+                } else if (lastDot !== -1) {
+                    const after = cleanedS.slice(lastDot + 1);
+                    if (!/^\d{1,3}$/.test(after)) processedS = cleanedS.replace(/\./g, '');
+                }
+
+                processedS = processedS.replace(/[^0-9\.\-\+eE]/g, '');
+
+                let parsed = parseFloat(processedS);
+                if (isNaN(parsed)) parsed = 0;
+                if (isNegative) parsed = -Math.abs(parsed);
+                
+                return parsed;
+            }
+
+            /**
+             * Formatiert ein Date Objekt als 'YYYY-MM-DD' für <input type="date">.
+             * @param {Date} dateObj   Das zu formatierende Date Objekt.
+             * @returns {string} Das Datum im Format YYYY-MM-DD.
+             */
+            function formatDateForInput(dateObj) {
+                return dateObj.toISOString().split('T')[0];
+            }
+
+            /**
+             * Aktualisiert alle UI Texte basierend auf data i18n Attributen und der L() Funktion.
+             * Wird einmal beim Laden aufgerufen.
+             */
+            function updateTexts() {
+                //  Statische Texte via data i18n
+                document.title = L('app_title');
+                document.querySelector('header h1').innerHTML = `<i class="fas fa-person"></i> ${L('app_title')}`;
+                
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    const text = L(key);
+
+                    if (el.tagName === 'INPUT') {
+                        if (el.type === 'submit' || el.type === 'button') {
+                            el.value = text;
+                        } else if (el.placeholder) {
+                            el.placeholder = text;
+                        }
+                    } else if (el.tagName === 'BUTTON') {
+                        let textNode = Array.from(el.childNodes).find(node => node.nodeType === 3 || (node.nodeType === 1 && node.tagName === 'SPAN'));
+                        if (textNode) {
+                            if(textNode.nodeType === 3) textNode.textContent = text;
+                            else textNode.textContent = text;
+                        } else {
+                            el.textContent = text; // Fallback
+                        }
+                    } else {
+                        el.textContent = text;
+                    }
+                });
+
+                //  Komplexe/gemischte Inhalte
+                DOM.navHomeBtn.innerHTML = `<i class="fas fa-home"></i> ${L('nav_home')}`;
+                DOM.navCategorizeBtn.textContent = L('nav_categorize');
+                DOM.navVisualizeBtn.textContent = L('nav_visualize');
+                DOM.navImportBtn.textContent = L('nav_import');
+                
+                DOM.resetBtn.innerHTML = `<i class="fas fa-trash"></i> ${L('btn_reset')}`;
+                DOM.saveJsonBtn.innerHTML = `<i class="fas fa-save"></i> ${L('btn_save_json')}`;
+                DOM.exportBtn.innerHTML = `<i class="fas fa-file-export"></i> ${L('btn_export_csv')}`;
+                DOM.rulesTitle.innerHTML = `<i class="fas fa-filter"></i> ${L('rules_title')}`;
+                
+                //  Mapping Anweisung
+                DOM.mappingInstruction.innerHTML = L('mapping_instruction_base') + ' <br>' +
+                    DOM.MAPPING_FIELDS.map(f => `<span id="map-label-${f}">${L(f)}</span>`).join(', ');
+                
+                //  Platzhalter und Fallbacks
+                DOM.ruleSearch.placeholder = L('rules_search_placeholder');
+                DOM.ruleCategory.placeholder = L('rules_category_placeholder');
+              
+                const categoriesBtnSpan = DOM.visCategoriesToggleBtn.querySelector('span');
+                if (categoriesBtnSpan) {
+                    categoriesBtnSpan.textContent = L('vis_nested_variable'); // Setzt auf "Variable Ausgaben"
+                }
+            }
+
+            // Öffentliches API des Utils Moduls
+            return {
+                showStatus,
+                showConfirmationModal,
+                parseGermanDate,
+                parseGermanNumber,
+                formatDateForInput,
+                updateTexts
+            };
+        })();
+
+
+        /**
+         * @namespace Store
+         * @description Singleton für das zentrale State Management (Pub/Sub).
+         * Verwaltet `tableData`, `savedRules` und `currentCurrency`.
+         * Enthält die Logik zur Manipulation dieser Daten (z.B. Regelanwendung).
+         */
+        const Store = (function() {
+            const _initialState = {
+                tableData: [],
+                savedRules: [],
+                currentCurrency: DOM.DEFAULT_CURRENCY
+            };
+            
+            let _state = { ..._initialState };
+            let _listeners = [];
+
+            /**
+             * Benachrichtigt alle registrierten Listener über eine Zustandsänderung.
+             * Übergibt den Event Typ, um gezieltere Updates zu ermöglichen.
+             * @private
+             * @param {string} eventType   Der Typ der Zustandsänderung ('data_changed', 'session_changed').
+             */
+            function _emit(eventType = 'session_changed') {
+                const stateCopy = JSON.parse(JSON.stringify(_state));
+                _listeners.forEach(listener => listener(stateCopy, eventType));
+            }
+            
+            /**
+             * Wendet eine einzelne Regel auf ein Dataset an.
+             * @private
+             * @param {object} rule   Die Regel ({ search, category, isFixkosten }).
+             * @param {Array<object>} dataSet   Das Dataset, auf das die Regel angewendet wird.
+             * @returns {number} Die Anzahl der geänderten Zeilen.
+             */
+            function _applyRuleToData(rule, dataSet) {
+                if (!rule.search) return 0;
+                let appliedCount = 0;
+                const term = rule.search.toLowerCase();
+                
+                dataSet.forEach(row => {
+                    const purposeMatch = (row["Verwendungszweck"] || '').toLowerCase().includes(term);
+                    
+                    if (purposeMatch) {
+                        row['Kategorie'] = rule.category;
+                        if (rule.isFixkosten) {
+                            row['Fixkosten'] = 1;
+                        }
+                        appliedCount++;
+                    }
+                });
+                return appliedCount;
+            }
+
+            //  Öffentliches API des Stores 
+            return {
+                /**
+                 * Registriert eine Callback Funktion, die bei jeder Zustandsänderung aufgerufen wird.
+                 * @param {Function} callback   Die Listener Funktion (erhält den neuen State und den eventType als Argument).
+                 */
+                subscribe: function(callback) {
+                    _listeners.push(callback);
+                },
+
+                /**
+                 * Gibt eine (flache) Kopie des aktuellen Zustands zurück.
+                 * @returns {object} Der aktuelle Anwendungszustand.
+                 */
+                getState: function() {
+                    return { ..._state };
+                },
+
+                /**
+                 * Setzt den gesamten Tabellendaten Status.
+                 * @param {Array<object>} data   Das neue Array mit Tabellendaten.
+                 */
+                setTableData: function(data) {
+                    _state.tableData = data;
+                    _emit('data_changed'); 
+                },
+                
+                /**
+                 * Aktualisiert einen einzelnen Eintrag in tableData basierend auf der 'id'.
+                 * @param {object} updatedRow   Die aktualisierte Zeile.
+                 */
+                updateTableDataField: function(rowId, field, newValue) {
+                    const index = _state.tableData.findIndex(row => row.id == rowId);
+
+                    if (index !== -1) {
+                        let updatedRow = { ..._state.tableData[index] };
+                        updatedRow[field] = newValue;
+                        
+                        // Normalisiere alles
+                        updatedRow.Fixkosten = updatedRow.Fixkosten ? 1 : 0; 
+                        const dateObj = Utils.parseGermanDate(updatedRow.Buchungstag);
+                        updatedRow.Buchungstag = dateObj ? Utils.formatDateForInput(dateObj) : '';
+                        updatedRow.Betrag = Utils.parseGermanNumber(updatedRow.Betrag);
+                        _state.tableData[index] = updatedRow;
+                        _emit('data_changed'); 
+                        
+                    } else {
+                        console.error("Konnte Zeile zum Aktualisieren nicht finden, ID:", rowId);
+                    }
+                },
+
+                /**
+                 * Setzt den gesamten Regel Status.
+                 * @param {Array<object>} rules   Das neue Array mit Regeln.
+                 */
+                setRules: function(rules) {
+                    _state.savedRules = rules;
+                    _emit('session_changed');
+                },
+                
+                /**
+                 * Setzt die Währung.
+                 * @param {string} currency   Das neue Währungssymbol.
+                 */
+                setCurrency: function(currency) {
+                    _state.currentCurrency = currency || DOM.DEFAULT_CURRENCY;
+                    _emit('session_changed');
+                },
+
+                /**
+                 * Lädt einen vollständige Sitzung (Daten, Regeln, Währung).
+                 * Nützlich beim Laden einer JSON Sitzung.
+                 * @param {Array<object>} data   Tabellendaten.
+                 * @param {Array<object>} rules   Regeldaten.
+                 * @param {string} currency   Währungssymbol.
+                 */
+                loadState: function(data, rules, currency) {
+                    //  Betrag muss eine Zahl und Fixkosten 1/0 sein
+                    _state.tableData = data.map(row => ({ 
+                        ...row, 
+                        Betrag: Utils.parseGermanNumber(row.Betrag),
+                        Fixkosten: row.Fixkosten ? 1 : 0 
+                    }));
+                    _state.savedRules = rules.map(rule => ({ ...rule, isFixkosten: rule.isFixkosten || false }));
+                    _state.currentCurrency = currency || DOM.DEFAULT_CURRENCY;
+                    
+                    DOM.delimiterInput.value = ";"; // Default CSV Trennzeichen
+                    _emit('session_changed');
+                    
+					Utils.showStatus("msg_json_loaded", 'success', data.length, rules.length);
+                },
+
+                /**
+                 * Setzt den State auf den Initialzustand zurück.
+                 */
+                reset: function() {
+                    _state = { ..._initialState };
+                    _emit('session_changed'); 
+                },
+                
+                /**
+                 * Fügt eine neue Regel hinzu, wendet sie an und benachrichtigt Listener.
+                 * @param {string} search   Suchbegriff.
+                 * @param {string} category   Kategorie.
+                 * @param {boolean} isFixkosten   Ob es sich um Fixkosten handelt.
+                 */
+                addRule: function(search, category, isFixkosten) {
+                    if (!search || !category) return;
+                    
+                    const exists = _state.savedRules.some(r => r.search === search && r.category === category && r.isFixkosten === isFixkosten);
+                    
+                    if (!exists) {
+                        _state.savedRules.push({ search, category, isFixkosten });
+                        const affected = _applyRuleToData({ search, category, isFixkosten }, _state.tableData);
+                        Utils.showStatus("msg_rule_saved", 'success', affected);
+                        _emit('session_changed');
+                    } else {
+                        Utils.showStatus("msg_rule_exists", 'error');
+                    }
+                },
+                
+                /**
+                 * Löscht eine Regel (nach Index), wendet alle Regeln neu an und benachrichtigt Listener.
+                 * @param {number} index   Der Index der zu löschenden Regel.
+                 */
+                deleteRule: function(index) {
+                    if (index < 0 || index >= _state.savedRules.length) return;
+                    
+                    _state.savedRules.splice(index, 1);
+                    
+                    // Regeln neu anwenden
+                    const totalAffected = this.applyAllRules(true); 
+                    Utils.showStatus("msg_rule_deleted_reapplied", 'success', totalAffected);
+                    
+                    _emit('session_changed');
+				},
+                
+                /**
+                 * Löscht alle Regeln, wendet dies an und benachrichtigt Listener.
+                 */
+                deleteAllRules: function() {
+                    if (_state.savedRules.length === 0) {
+                        Utils.showStatus("msg_no_rules_to_delete", 'info');
+                        return;
+                    }
+                    
+                    _state.savedRules = [];
+                    // Wende den leeren Regelsatz an (silent)
+                    const totalAffected = this.applyAllRules(true); 
+                    Utils.showStatus("msg_rules_deleted", 'success');
+                    _emit('session_changed');
+                },
+
+                /**
+                 * Setzt Kategorien zurück und wendet alle gespeicherten Regeln auf die tableData an.
+                 * @param {boolean} [silent=false]   Wenn true, wird kein Event ausgelöst.
+                 * @returns {number} Die Gesamtzahl der betroffenen Zeilen.
+                 */
+                applyAllRules: function(silent = false) {
+                    let totalAffected = 0;
+                    //  Reset der Kategorien und Fixkosten
+                    _state.tableData.forEach(row => {
+                        row.Kategorie = "";
+                        row.Fixkosten = 0;
+                    });
+
+                    //  Anwendung aller Regeln
+                    _state.savedRules.forEach(rule => {
+                        totalAffected += _applyRuleToData(rule, _state.tableData);
+                    });
+                    
+                    if (!silent) {
+                        _emit('data_changed');
+                    }
+                    return totalAffected;
+                },
+                
+                /**
+                 * Zählt, wie oft ein Suchbegriff im Feld 'Verwendungszweck' der tableData vorkommt.
+                 * @param {string} searchTerm   Der zu suchender Begriff.
+                 * @returns {number} Die Anzahl der Treffer.
+                 */
+                countMatches: function(searchTerm) {
+                    if (!searchTerm || _state.tableData.length === 0) return 0;
+                    const term = searchTerm.toLowerCase();
+                    
+                    return _state.tableData.filter(row => 
+                        (row["Verwendungszweck"] || '').toLowerCase().includes(term)
+                    ).length;
+                }
+            };
+        })();
+
+
+        /**
+         * @namespace ImportModule
+         * @description Verwaltet den CSV Import, das Spalten Mapping und das Laden von JSON Sitzungen.
+         */
+        const ImportModule = (function() {
+            let _pendingData = [];
+            let _pendingHeaders = [];
+            let _fieldMappings = {};
+            let _currentMappingIndex = 0;
+
+            /**
+             * Startet den CSV Mapping Dialog: zeigt Header, Vorschau und bindet Header Click Handler.
+             * @private
+             * @param {Array<string>} headers   Die aus der CSV gelesenen Header.
+             * @param {Array<object>} previewData   Die ersten paar Zeilen der Daten zur Vorschau.
+             */
+            function _setupMappingStep(headers, previewData) {
+                DOM.importInitialStep.classList.add('hidden');
+                DOM.importMappingStep.classList.remove('hidden');
+
+                _currentMappingIndex = 0;
+                _fieldMappings = {};
+
+                _updateMappingInstructionUI();
+
+                DOM.previewMappingTableHead.innerHTML = '';
+                const trHead = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    th.addEventListener('click', _handleHeaderClick);
+                    trHead.appendChild(th);
+                });
+                DOM.previewMappingTableHead.appendChild(trHead);
+
+                DOM.previewMappingTableBody.innerHTML = '';
+                previewData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.textContent = row[header] || '';
+                        tr.appendChild(td);
+                    });
+                    DOM.previewMappingTableBody.appendChild(tr);
+                });
+            }
+
+            /**
+             * Aktualisiert die UI Hervorhebung der Mappings (mapped/current) während des Imports.
+             * @private
+             */
+            function _updateMappingInstructionUI() {
+                DOM.MAPPING_FIELDS.forEach((field, index) => {
+                    const span = document.getElementById(`map-label-${field}`);
+                    if (!span) return;
+                    
+                    span.classList.remove('mapped', 'current');
+                    
+                    if (index < _currentMappingIndex) {
+                        span.classList.add('mapped');
+                    } else if (index === _currentMappingIndex) {
+                        span.classList.add('current');
+                    }
+                });
+            }
+
+            /**
+             * Klick Handler für CSV Header: mappt Header auf internes Feld und schließt Mapping bei Vollständigkeit.
+             * @private
+             * @param {Event} event   Das Klick Ereignis auf ein TH Element.
+             */
+            function _handleHeaderClick(event) {
+                const th = event.target;
+                const clickedHeader = th.textContent;
+
+                if (_currentMappingIndex >= DOM.MAPPING_FIELDS.length || th.classList.contains('mapped-header')) {
+                    return;
+                }
+
+                const fieldToMap = DOM.MAPPING_FIELDS[_currentMappingIndex];
+                _fieldMappings[fieldToMap] = clickedHeader;
+
+                th.classList.add('mapped-header');
+                _currentMappingIndex++;
+                _updateMappingInstructionUI();
+
+                if (_currentMappingIndex === DOM.MAPPING_FIELDS.length) {
+                    Utils.showStatus('msg_all_fields_mapped', 'success');
+                    setTimeout(_finishImportProcess, 500);
+                }
+            }
+            
+            /**
+             * Bricht das Mapping ab, setzt Zustand zurück und navigiert zurück zur Import Seite.
+             * @private
+             */
+            function _cancelMapping() {
+                DOM.importMappingStep.classList.add('hidden');
+                DOM.importInitialStep.classList.remove('hidden');
+                _pendingData = [];
+                _pendingHeaders = [];
+                _fieldMappings = {};
+                _currentMappingIndex = 0;
+                Utils.showStatus('msg_import_canceled', 'info');
+                MainController.showPage('import'); // Router aufrufen
+            }
+
+           /**
+             * Schließt den Import ab, transformiert die Daten und lädt sie in den Store.
+             * @private
+             */
+            function _finishImportProcess() {
+                const originalKategorieHeader = _pendingHeaders.find(h => h.toLowerCase() === 'kategorie');
+                const originalFixkostenHeader = _pendingHeaders.find(h => h.toLowerCase() === 'fixkosten' || h.toLowerCase() === 'fix');
+
+                const importedData = _pendingData.map((row, index) => {
+                    const newRow = { id: index };
+
+                    for (const [internalName, csvHeaderName] of Object.entries(_fieldMappings)) {
+                        const rawValue = row[csvHeaderName];
+
+                        if (internalName === 'Buchungstag') {
+                            const dateObj = Utils.parseGermanDate(rawValue);
+                            // Speichere als YYYY-MM-DD
+                            newRow[internalName] = dateObj ? Utils.formatDateForInput(dateObj) : '';
+                        } else if (internalName === 'Betrag') {
+                            // Speichere als Zahl
+                            newRow[internalName] = Utils.parseGermanNumber(rawValue);
+                        } else {
+                            newRow[internalName] = rawValue;
+                        }
+                    }
+                    
+                    newRow['Kategorie'] = originalKategorieHeader ? (row[originalKategorieHeader] || "") : "";                    
+                    if (originalFixkostenHeader) {
+                        const rawFix = String(row[originalFixkostenHeader] || '').toLowerCase().trim();
+                        newRow['Fixkosten'] = (rawFix === '1' || rawFix === 'true' || rawFix === 'ja' || rawFix === 'x' || rawFix === 'wahr') ? 1 : 0;
+                    } else {
+                        newRow['Fixkosten'] = 0;
+                    }
+                    
+                    return newRow;
+                });
+                
+                // Daten in den Store laden
+                Store.setTableData(importedData);
+                
+                // Regeln auf die neuen Daten anwenden
+                const { savedRules } = Store.getState();
+                if (savedRules.length > 0) {
+                    const affected = Store.applyAllRules();
+                    Utils.showStatus("msg_rules_applied_on_import", 'success', affected);
+                }
+
+                // Reset lokaler Status
+                _pendingData = [];
+                _pendingHeaders = [];
+                
+                // UI zurücksetzen und zur nächsten Seite navigieren
+                DOM.importMappingStep.classList.add('hidden');
+                DOM.importInitialStep.classList.remove('hidden');
+                
+                MainController.showPage('categorize');
+            }
+            
+            /**
+             * Verarbeitet die ausgewählte CSV Datei.
+             * @private
+             * @param {Event} e   Das Change Ereignis des Datei Inputs.
+             */
+            function _handleCsvInput(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const delimiter = DOM.delimiterInput.value || ';';
+               
+                Papa.parse(file, {
+                    delimiter: delimiter,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        if (results.errors.length > 0 && results.data.length === 0) {
+                            Utils.showStatus("msg_parsing_error", 'error');
+                            return;
+                        }
+
+                        _pendingData = results.data;
+                        _pendingHeaders = results.meta.fields;
+
+                        _setupMappingStep(_pendingHeaders, _pendingData.slice(0, 4));
+                    },
+                    error: function(err) {
+                        Utils.showStatus("msg_crit_error", 'error', err.message);
+                    }
+                });
+                DOM.csvInput.value = '';
+            }
+            
+            /**
+             * Verarbeitet die ausgewählte JSON Datei.
+             * @private
+             * @param {Event} e   Das Change Ereignis des Datei Inputs.
+             */
+            function _handleJsonInput(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const text = event.target.result;
+                        const parsedData = JSON.parse(text);
+
+                        if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) {
+                            throw new Error(L("msg_json_invalid"));
+                        }
+                        
+                        // Daten in den Store laden
+                        Store.loadState(parsedData.data, parsedData.rules, parsedData.currency);
+                        
+                        MainController.showPage('visualize'); // Direkt zur Visualisierung
+
+                    } catch (err) {
+                        console.error("Fehler beim Laden der JSON-Datei:", err);
+                        Utils.showStatus("msg_crit_error", 'error', err.message);
+                        Store.reset(); // Bei Fehler zurücksetzen
+                    }
+                };
+                
+                reader.onerror = function() {
+                    Utils.showStatus("msg_crit_error", 'error', "Unbekannter Fehler beim Lesen.");
+                };
+
+                reader.readAsText(file);
+                DOM.jsonInput.value = '';
+            }
+
+            //  Öffentliches API des Import Moduls 
+            return {
+                /**
+                 * Initialisiert das Import Modul und bindet Event Listener.
+                 */
+                init: function() {
+                    DOM.startNewBtn.addEventListener('click', () => MainController.showPage('import'));
+                    DOM.loadSessionBtn.addEventListener('click', () => MainController.showPage('loadJson'));
+                    
+                    DOM.csvInput.addEventListener('change', _handleCsvInput);
+                    DOM.jsonInput.addEventListener('change', _handleJsonInput);
+                    DOM.cancelMappingBtn.addEventListener('click', _cancelMapping);
+                }
+            };
+        })();
+
+
+        /**
+         * @namespace CategorizeModule
+         * @description Verwaltet die Haupt Daten Tabelle (Tabulator) und die Regel UI.
+         */
+        const CategorizeModule = (function() {
+            let _tableInstance = null;
+            let _isInitialized = false;
+            let _tableReadyPromise = null;
+
+            /**
+             * Initialisiert die Haupt Tabulator Tabelle.
+			 * Umgestellt auf lokale CellEdited Events.
+             * @private
+             * @param {Array<object>} data   Die anzuzeigenden Daten.
+             */
+            function _initTable(data) {
+                if (_tableInstance) _tableInstance.destroy();
+                
+                DOM.emptyState.classList.add('hidden');
+                const { currentCurrency } = Store.getState();
+				const knownColumns = {
+                    "Buchungstag": { 
+                        title: L("Buchungstag"),
+						editor: "date",
+                        width: 90, 
+                        //frozen: true,
+                        sorter: function(a, b) {
+                            const dateA = a ? new Date(a) : null;
+                            const dateB = b ? new Date(b) : null;
+                            if (dateA === null && dateB === null) return 0;
+                            if (dateA === null) return -1; 
+                            if (dateB === null) return 1;
+                            return dateA.getTime() - dateB.getTime();
+                        },
+						cellEdited: function(cell) {
+								const id = cell.getRow().getData().id;
+								const newValue = cell.getValue();
+								Store.updateTableDataField(id, "Buchungstag", newValue);
+							}
+                    },
+                    "Verwendungszweck": { title: L("Verwendungszweck"), sorter: "string", headerFilter:"input", formatter: "textarea", minWidth: 200, 
+						cellEdited: function(cell) {
+								const id = cell.getRow().getData().id;
+								const newValue = cell.getValue();
+								Store.updateTableDataField(id, "Verwendungszweck", newValue);
+							}
+					},
+                    "Betrag": { title: L("Betrag"), sorter: "number", hozAlign: "right", width: 100, 
+                        editor: "number",
+                        formatter:"money", formatterParams:{decimal:",", thousand:".", symbol: currentCurrency, symbolAfter:true},
+						cellEdited: function(cell) {
+                            const id = cell.getRow().getData().id;
+                            const newValue = cell.getValue();
+                            Store.updateTableDataField(id, "Betrag", newValue);
+						}							
+                    },
+                    "Kategorie": { title: L("Kategorie"), sorter: "string", headerFilter:"input", width: 120,
+						editor: "input",
+                        formatter: function(cell) {
+                            const val = cell.getValue();
+                            if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`; 
+                            return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
+                        },
+						cellEdited: function(cell) {
+                            const id = cell.getRow().getData().id;
+                            const newValue = cell.getValue();
+                            Store.updateTableDataField(id, "Kategorie", newValue);
+                        }
+                    },
+                    "Fixkosten": { title: L("Fixkosten"), sorter: "boolean", hozAlign: "center", width: 60, 
+                        formatter: "tickCross", 
+                        cellClick: function(e, cell) { 
+                            const id = cell.getRow().getData().id;
+                            const newValue = !cell.getValue();
+                            cell.setValue(newValue); 
+                            Store.updateTableDataField(id, "Fixkosten", newValue);
+                        }
+                    }
+                };
+
+                const columns = [];
+                if (!data || data.length === 0) {
+                    console.error("initTable aufgerufen ohne Daten.");
+                    DOM.emptyState.classList.remove('hidden');
+                    return;
+                }
+                
+                const dataKeys = Object.keys(data[0]).filter(key => key !== 'id');
+                const knownKeys = Object.keys(knownColumns);
+                
+                knownKeys.forEach(key => {
+                    if (key !== 'Kategorie' && key !== 'Fixkosten' && dataKeys.includes(key)) {
+                        columns.push({ ...knownColumns[key], field: key });
+                    }
+                });
+                
+                if (dataKeys.includes('Kategorie')) columns.push({ ...knownColumns['Kategorie'], field: 'Kategorie' });
+                if (dataKeys.includes('Fixkosten')) columns.push({ ...knownColumns['Fixkosten'], field: 'Fixkosten' });
+
+                _tableReadyPromise = new Promise((resolve) => {
+                    _tableInstance = new Tabulator("#data-table", {
+                        data: data,
+                        layout: "fitColumns",
+                        height: "100%",
+                        columns: columns,
+                        movableColumns: true,
+                        resizableRows: true,
+                        index: "id",
+                        tableBuilt: function() {
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            /**
+             * Sammelt alle eindeutigen Kategorien aus tableData und savedRules.
+             * @private
+             * @param {object} state   Der aktuelle Anwendungszustand.
+             * @returns {Set<string>} Ein Set mit allen eindeutigen, nicht leeren Kategorien.
+             */
+            function _getAllCategories(state) {
+                const categories = new Set();
+                
+                // Kategorien aus Tabellendaten
+                state.tableData.forEach(row => {
+                    if (row.Kategorie) {
+                        categories.add(row.Kategorie.trim());
+                    }
+                });
+
+                // Kategorien aus gespeicherten Regeln
+                state.savedRules.forEach(rule => {
+                    if (rule.category) {
+                        categories.add(rule.category.trim());
+                    }
+                });
+
+                categories.delete('');
+                return categories;
+            }
+
+            /**
+             * Aktualisiert die Datalist für die Kategorie Eingabe.
+             * @private
+             * @param {object} state   Der aktuelle Anwendungszustand.
+             */
+            function _renderCategoryDatalist(state) {
+                const categories = _getAllCategories(state);
+                const datalistEl = DOM.categoryDatalist;
+                
+                datalistEl.innerHTML = '';
+                
+                Array.from(categories).sort().forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    datalistEl.appendChild(option);
+                });
+            }
+
+            /**
+             * Aktualisiert NUR die Treffer Vorschau und den Speicher Button Status.
+             * @private
+             */
+            function _updateMatchCountAndButtonState() {
+                const searchTerm = DOM.ruleSearch.value.trim();
+                const categoryValue = DOM.ruleCategory.value.trim();
+                const count = Store.countMatches(searchTerm);
+                
+                DOM.matchCountPreview.innerHTML = `${count} <span data-i18n="rules_match_preview"></span>`;
+                Utils.updateTexts();
+
+                const hasInput = searchTerm.length > 0 && categoryValue.length > 0;
+                const isInputEnabled = !DOM.ruleSearch.disabled;
+                
+                DOM.saveRuleBtn.disabled = !(hasInput && isInputEnabled);
+            }
+
+            /**
+             * Aktualisiert Treffer Vorschau UND filtert die Tabelle live.
+             * Wird nur vom 'input' Event des Suchfelds ausgelöst.
+             * @private
+             */
+            function _updateMatchPreviewAndFilter() {
+                _updateMatchCountAndButtonState();
+                const searchTerm = DOM.ruleSearch.value.trim();
+                
+                if (_tableInstance) {
+                    
+                    if (searchTerm.length > 0) {
+                        _tableInstance.setFilter("Verwendungszweck", "like", searchTerm);
+                    } else {
+                        _tableInstance.clearFilter();
+                    }
+                }
+            }
+
+           
+            /**
+             * Rendert die Liste der gespeicherten Regeln in der Seitenleiste.
+             * @private
+             * @param {Array<object>} rules   Das Array der zu rendernden Regeln.
+             */
+            function _renderRulesList(rules) {
+                DOM.rulesList.innerHTML = '';
+				
+                if (rules.length === 0) {
+                    DOM.rulesList.innerHTML = `<li class="text-gray-500 text-sm italic text-center pt-4" data-i18n="rules_list_empty"></li>`;
+                    Utils.updateTexts(); // Text für Empty List rendern
+                    DOM.runAllRulesBtn.classList.add('hidden');
+                    DOM.deleteAllRulesBtn.classList.add('hidden');
+                    return;
+                }
+                
+                DOM.runAllRulesBtn.classList.remove('hidden');
+                DOM.deleteAllRulesBtn.classList.remove('hidden');
+
+                rules.forEach((rule, index) => {
+                    const li = document.createElement('li');
+                    li.className = "bg-white p-1 rounded border border-gray-200 flex items-center";
+                    
+                    const fixkostenIcon = rule.isFixkosten 
+                        ? `<i class="fas fa-file-invoice-dollar text-xs text-purple-500 ml-1" title="${L('Fixkosten')}"></i>`
+                        : '';
+                    
+                    li.innerHTML = `
+                        <div class="flex justify-between items-center w-full text-xs">  <div class="flex-grow text-xs truncate flex items-center">
+                                <span class="font-medium text-gray-800">"${rule.search}"</span>
+                                <i class="fas fa-arrow-right text-xs text-[var(--color-scheme)] mx-1"></i> <span class="font-semibold bg-blue-100 text-blue-800 px-1 py-0.5 rounded-full text-3xs">${rule.category}</span> ${fixkostenIcon}
+                            </div>
+                            <button data-index="${index}" class="delete-rule-btn flex-shrink-0 text-gray-400 hover:text-red-600 transition ml-2 px-1 py-0.5" title="${L('rules_btn_delete')}"> <i class="fas fa-trash-alt fa-xs"></i> </button>
+                        </div>
+                    `;
+                    // Event Listener statt 'onclick'
+                    li.querySelector('.delete-rule-btn').addEventListener('click', _handleDeleteRuleClick);
+                    DOM.rulesList.appendChild(li);
+					IconLoader.run(li);
+                });
+            }
+		
+
+            /**
+             * Handler für Klick auf "Regel speichern".
+             * @private
+             */
+            async function _handleSaveRule() {
+				const search = DOM.ruleSearch.value.trim();
+				const cat = DOM.ruleCategory.value.trim(); 
+				const isFixkosten = DOM.ruleFixkostenCheckbox.checked;
+				
+				if (!search || !cat) {
+					Utils.showStatus("msg_rule_missing_fields", 'error'); 
+					return;
+				}
+				
+				Store.addRule(search, cat, isFixkosten);
+				
+				// Reset der UI Elemente
+				DOM.ruleSearch.value = '';
+				DOM.ruleCategory.value = ''; 
+				DOM.ruleFixkostenCheckbox.checked = false;
+				
+                if (_tableInstance && _tableReadyPromise) {
+                    await _tableReadyPromise; 
+					_tableInstance.clearFilter();
+				}
+				
+				_updateMatchCountAndButtonState();
+			}
+
+            /**
+             * Handler für Klick auf "Alle Regeln anwenden".
+             * @private
+             */
+            async function _handleRunAllRules() {
+				const { tableData, savedRules } = Store.getState();
+				if (tableData.length === 0 || savedRules.length === 0) return;
+				
+                // applyAllRules() ohne Argument aufrufen, damit es 'data_changed' auslöst
+				const totalAffected = Store.applyAllRules(); 
+				Utils.showStatus("msg_rules_applied", 'success', totalAffected);
+				
+				// Filter in der Tabelle zurücksetzen
+                if (_tableInstance && _tableReadyPromise) {
+                    await _tableReadyPromise;
+					_tableInstance.clearFilter();
+				}
+			}
+
+            /**
+             * Handler für Klick auf "Alle Regeln löschen".
+             * @private
+             */
+            async function _handleDeleteAllRules() {
+                const { savedRules } = Store.getState();
+                if (savedRules.length === 0) {
+                    Utils.showStatus("msg_no_rules_to_delete", 'info');
+                    return;
+                }
+
+                const isConfirmed = await Utils.showConfirmationModal(
+                    "confirm_delete_all_rules_title",
+                    "confirm_delete_all_rules_message",
+                    "confirm_delete_all_rules_btn",
+                    [savedRules.length] // Argumente als Array übergeben
+                );
+                
+                if (isConfirmed) {
+                    Store.deleteAllRules();
+                }
+            }
+            
+            /**
+             * Handler für Klick auf den Löschen Button einer einzelnen Regel.
+             * @private
+             * @param {Event} e   Das Klick Ereignis.
+             */
+            async function _handleDeleteRuleClick(e) {
+                const index = parseInt(e.currentTarget.dataset.index, 10);
+                const { savedRules } = Store.getState();
+                const rule = savedRules[index];
+
+                if (!rule) return;
+
+                const isConfirmed = await Utils.showConfirmationModal(
+                    "confirm_delete_rule_title",
+                    "confirm_delete_rule_message",
+                    "confirm_delete_rule_btn",
+                    [rule.search, rule.category] // Argumente als Array übergeben
+                );
+
+                if (isConfirmed) { 
+                    Store.deleteRule(index);
+                }
+            }
+            
+            /**
+             * Verarbeitet Änderungen aus dem Store.
+             * @private
+             * @param {object} state   Der neue Anwendungszustand.
+             * @param {string} eventType   Der Typ der Zustandsänderung.
+             */
+            function _onStoreUpdate(state, eventType) {
+                const hasData = state.tableData.length > 0;
+
+                // update Liste, Datalist, Buttons
+                if ( eventType === 'session_changed') {
+                    _renderRulesList(state.savedRules);
+                    _renderCategoryDatalist(state);
+                    _updateMatchCountAndButtonState(); 
+                }
+                
+                DOM.ruleSearch.disabled = !hasData;
+                DOM.ruleCategory.disabled = !hasData;
+                DOM.ruleFixkostenCheckbox.disabled = !hasData;
+                DOM.saveRuleBtn.disabled = !hasData;
+                
+                // Fälle Import, JSON Load, Regel-Änderung
+                if (eventType === 'session_changed') {
+                    
+                    if (hasData) {
+                        if (!_tableInstance) {
+                            // neu initialisieren
+                            _initTable(state.tableData);
+                        } else {
+                            // Daten ersetzen
+                            _tableInstance.replaceData(state.tableData);
+                        }
+                    } else {
+                        // Keine Daten (z.B. nach Reset)
+                        if (_tableInstance) {
+                            _tableInstance.destroy();
+                            _tableInstance = null;
+                            _tableReadyPromise = null; 
+                        }
+                        DOM.emptyState.classList.remove('hidden');
+                    }
+                } // Bei 'data_changed' wird die Tabelle nicht neu geladen.
+            }
+
+            //  Öffentliches API des Categorize Moduls 
+            return {
+                /**
+                 * Initialisiert das Modul und bindet Event Listener.
+                 */
+                init: function() {
+                    if (_isInitialized) return;
+                    
+                    DOM.ruleSearch.addEventListener('input', _updateMatchPreviewAndFilter);
+                    DOM.ruleCategory.addEventListener('input', _updateMatchCountAndButtonState); 
+
+                    DOM.saveRuleBtn.addEventListener('click', _handleSaveRule);
+                    DOM.runAllRulesBtn.addEventListener('click', _handleRunAllRules);
+                    DOM.deleteAllRulesBtn.addEventListener('click', _handleDeleteAllRules);
+
+                    // Auf Store Updates lauschen
+                    Store.subscribe(_onStoreUpdate);
+                    _isInitialized = true;
+                },
+                
+                /**
+                 * Zerstört die Tabulator Instanz (wird bei Reset benötigt).
+                 */
+                destroy: function() {
+                    if (_tableInstance) {
+                        _tableInstance.destroy();
+                        _tableInstance = null;
+                    }
+                    _tableReadyPromise = null; 
+                    DOM.emptyState.classList.remove('hidden');
+                    // Listener bleiben aktiv, aber _onStoreUpdate behandelt den leeren Zustand
+                },
+
+                /**
+                 * Stellt eine async Methode zum Exportieren der CSV bereit.
+                 */
+                exportCsv: async function() {
+                    // Greife direkt auf die Daten im Store zu
+                    const { tableData } = Store.getState();
+                    
+                    if (tableData.length > 0) {
+                        try {
+                            const csv = Papa.unparse(tableData, { 
+                                delimiter: ";" 
+                            });
+                            
+                            // BOM wg Excel (Umlaute)
+                            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                            const url = URL.createObjectURL(blob);
+                            
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'Haushaltsbuch_Kategorisiert.csv';
+                            document.body.appendChild(a);
+                            a.click();
+                            
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            Utils.showStatus("msg_csv_exported", 'success', tableData.length);
+
+                        } catch (e) {
+                            console.error("CSV Export failed:", e);
+                            Utils.showStatus("msg_crit_error", 'error', e.message);
+                        }
+                    } else {
+                        Utils.showStatus("msg_no_data_to_export", 'info');
+                    }
+                }
+            };
+			
+        })();
+
+
+		/**
+         * @namespace VisualizeModule
+         * @description Verwaltet die Visualisierungs Seite (Chart.js, Datumsfilter, Detail Tabellen).
+         * Refactored: Update Logik in Sub Routinen aufgeteilt.
+         */
+        const VisualizeModule = (function() {
+            let _myChartInstance = null; // Tortendiagramm (Kategorien)
+            let _myOverviewChartInstance = null; // Übersichts Chart
+            let _myLineChartInstance = null; // Liniendiagramm
+            let _myScatterChartInstance = null; // Streudiagramm
+            
+            let _einnahmenTableInstance = null;
+            let _variableAusgabenTableInstance = null;
+            let _fixeAusgabenTableInstance = null
+            let _isInitialized = false;
+            
+            let _activeOverviewTab = 'overview';
+            let _activeDetailTab = 'einnahmen'; 
+
+            let _einnahmenTableReadyPromise = null;
+            let _variableAusgabenTableReadyPromise = null;
+            let _fixeAusgabenTableReadyPromise = null;
+
+            // Cache für Detail Daten
+            let _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
+
+            /**
+             * Custom date sorter.
+             */
+            function _dateSorter(a, b) {
+                const dateA = a ? new Date(a) : null;
+                const dateB = b ? new Date(b) : null;
+                if (dateA === null && dateB === null) return 0;
+                if (dateA === null) return -1; 
+                if (dateB === null) return 1;
+                return dateA.getTime() - dateB.getTime();
+            }
+
+            /**
+             * Zerstört alle Charts.
+             */
+            function _destroyCharts() {
+                if (_myChartInstance) {
+                    _myChartInstance.destroy();
+                    _myChartInstance = null;
+                }
+                if (_myOverviewChartInstance) {
+                    _myOverviewChartInstance.destroy();
+                    _myOverviewChartInstance = null;
+                }
+                if (_myLineChartInstance) {
+                    _myLineChartInstance.destroy();
+                    _myLineChartInstance = null;
+                }
+                if (_myScatterChartInstance) {
+                    _myScatterChartInstance.destroy();
+                    _myScatterChartInstance = null;
+                }
+            }
+
+            /**
+             * Zerstört alle Detail Tabellen.
+             */
+            function _destroyDetailTables() {
+                if (_einnahmenTableInstance) {
+                    _einnahmenTableInstance.destroy();
+                    _einnahmenTableInstance = null;
+                }
+                if (_variableAusgabenTableInstance) {
+                    _variableAusgabenTableInstance.destroy();
+                    _variableAusgabenTableInstance = null;
+                }
+                if (_fixeAusgabenTableInstance) {
+                    _fixeAusgabenTableInstance.destroy();
+                    _fixeAusgabenTableInstance = null;
+                }
+                
+                _einnahmenTableReadyPromise = null;
+                _variableAusgabenTableReadyPromise = null;
+                _fixeAusgabenTableReadyPromise = null;
+                
+                _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
+                _activeDetailTab = 'einnahmen';
+            }
+            
+            /**
+             * Setzt Datumsgrenzen basierend auf Daten.
+             */
+            function _setDateFiltersFromData(tableData) {
+                let minDate = null;
+                let maxDate = null;
+                tableData.forEach(row => {
+                    const date = Utils.parseGermanDate(row.Buchungstag); 
+                    if (date) {
+                        if (!minDate || date < minDate) minDate = date;
+                        if (!maxDate || date > maxDate) maxDate = date;
+                    }
+                });
+                if (minDate) DOM.dateStart.value = Utils.formatDateForInput(minDate);
+                if (maxDate) DOM.dateEnd.value = Utils.formatDateForInput(maxDate);
+            }
+
+            /**
+             * Tab Navigation Handler
+             */
+            async function showTab(tabName) {
+                DOM.visPieContentOverview.classList.add('hidden');
+                DOM.visContentDetails.classList.add('hidden');
+                DOM.visContentLines.classList.add('hidden');
+                DOM.visContentScatter.classList.add('hidden');
+                
+                DOM.visPieTabOverview.classList.remove('active');
+                DOM.visTabDetails.classList.remove('active');
+                DOM.visTabLines.classList.remove('active');
+                DOM.visTabScatter.classList.remove('active');
+               
+                if (tabName === 'overview') {
+                    DOM.visPieContentOverview.classList.remove('hidden');
+                    DOM.visPieTabOverview.classList.add('active');
+                    _activeOverviewTab = 'overview'; 
+                    _updateToggleButtons();
+                } else if (tabName === 'details') {
+                    DOM.visContentDetails.classList.remove('hidden');
+                    DOM.visTabDetails.classList.add('active');
+                    
+                    // Reset auf Einnahmen Tab
+                    _activeDetailTab = 'einnahmen';
+                    DOM.visContentEinnahmen.classList.remove('hidden');
+                    DOM.visContentVariableAusgaben.classList.add('hidden');
+                    DOM.visContentFixeAusgaben.classList.add('hidden');
+                    DOM.visTabEinnahmen.classList.add('active');
+                    DOM.visTabVariableAusgaben.classList.remove('active');
+                    DOM.visTabFixeAusgaben.classList.remove('active');
+
+                } else if (tabName === 'lines') {
+                    DOM.visContentLines.classList.remove('hidden');
+                    DOM.visTabLines.classList.add('active');
+                } else if (tabName === 'scatter') {
+                    DOM.visContentScatter.classList.remove('hidden');
+                    DOM.visTabScatter.classList.add('active');
+                }
+                  
+                await updateChart();
+            }
+            
+            async function _handleNestedTabClick(tabName) {
+                DOM.visContentEinnahmen.classList.add('hidden');
+                DOM.visContentVariableAusgaben.classList.add('hidden');
+                DOM.visContentFixeAusgaben.classList.add('hidden');
+                DOM.visTabEinnahmen.classList.remove('active');
+                DOM.visTabVariableAusgaben.classList.remove('active');
+                DOM.visTabFixeAusgaben.classList.remove('active');
+
+                _activeDetailTab = tabName;
+
+                if (tabName === 'einnahmen') {
+                    DOM.visContentEinnahmen.classList.remove('hidden');
+                    DOM.visTabEinnahmen.classList.add('active');
+                    await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
+                
+                } else if (tabName === 'variable') {
+                    DOM.visContentVariableAusgaben.classList.remove('hidden');
+                    DOM.visTabVariableAusgaben.classList.add('active');
+                    await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
+
+                } else if (tabName === 'fixe') {
+                    DOM.visContentFixeAusgaben.classList.remove('hidden');
+                    DOM.visTabFixeAusgaben.classList.add('active');
+                    await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
+                }
+            }
+            
+            async function _handleOverviewToggle(tabName) {
+                _activeOverviewTab = tabName;
+                _updateToggleButtons();
+                await updateChart(); 
+            }
+
+            function _updateToggleButtons() {
+                const overviewBtn = DOM.visOverviewToggleBtn;
+                const categoriesBtn = DOM.visCategoriesToggleBtn;
+                const activeClasses = ['bg-[var(--color-scheme)]', 'text-white', 'border-[var(--color-scheme)]'];
+                const inactiveClasses = ['bg-white', 'text-gray-900', 'border-gray-300', 'hover:bg-gray-100'];
+
+                if (_activeOverviewTab === 'overview') {
+                    overviewBtn.classList.add(...activeClasses);
+                    overviewBtn.classList.remove(...inactiveClasses);
+                    categoriesBtn.classList.add(...inactiveClasses);
+                    categoriesBtn.classList.remove(...activeClasses);
+                } else {
+                    categoriesBtn.classList.add(...activeClasses);
+                    categoriesBtn.classList.remove(...inactiveClasses);
+                    overviewBtn.classList.add(...inactiveClasses);
+                    overviewBtn.classList.remove(...activeClasses);
+                }
+            }
+
+            /* --- Tabellen Initialisierung --- */
+
+             async function _updateEinnahmenTable(data) {
+                const { currentCurrency } = Store.getState();
+                if (_einnahmenTableInstance) {
+                    _einnahmenTableInstance.destroy();
+                    _einnahmenTableInstance = null;
+                }
+                _einnahmenTableReadyPromise = null;
+                _einnahmenTableReadyPromise = new Promise((resolve) => {
+                    _einnahmenTableInstance = new Tabulator(DOM.einnahmenTableEl, {
+                        data: data,
+                        layout: "fitColumns",
+                        height: "100%",
+                        placeholder: L("vis_placeholder_no_income"),
+                        columns: [
+                            { title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
+                            { title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea" },
+                            { title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 100,
+                                formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
+                                bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
+                            }
+                        ],
+                        tableBuilt: function() { resolve(); }
+                    });
+                });
+                await _einnahmenTableReadyPromise;
+            }
+            
+            async function _updateVariableAusgabenTable(data) {
+                const { currentCurrency } = Store.getState();
+                if (_variableAusgabenTableInstance) {
+                    _variableAusgabenTableInstance.destroy();
+                    _variableAusgabenTableInstance = null;
+                }
+                _variableAusgabenTableReadyPromise = null;
+                _variableAusgabenTableReadyPromise = new Promise((resolve) => {
+                    _variableAusgabenTableInstance = new Tabulator(DOM.variableAusgabenTableEl, {
+                        data: data,
+                        layout: "fitColumns",
+                        height: "100%", 
+                        placeholder: L("vis_placeholder_no_variable"),
+                        columns: [
+                            { title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
+                            { title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
+                            { title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
+                                formatter: function(cell) {
+                                    const val = cell.getValue();
+                                    if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`;
+                                    return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
+                                }
+                            },
+                            { title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 100,
+                                formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
+                                bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
+                            }
+                        ],
+                        tableBuilt: function() { resolve(); }
+                    });
+                });
+                await _variableAusgabenTableReadyPromise;
+            }
+            
+            async function _updateFixeAusgabenTable(data) {
+                const { currentCurrency } = Store.getState();
+                if (_fixeAusgabenTableInstance) {
+                    _fixeAusgabenTableInstance.destroy();
+                    _fixeAusgabenTableInstance = null;
+                }
+                _fixeAusgabenTableReadyPromise = null;
+                _fixeAusgabenTableReadyPromise = new Promise((resolve) => {
+                    _fixeAusgabenTableInstance = new Tabulator(DOM.fixeAusgabenTableEl, {
+                        data: data,
+                        layout: "fitColumns",
+                        height: "100%",
+                        placeholder: L("vis_placeholder_no_fixed"),
+                        columns: [
+                            { title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 120 },
+                            { title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
+                            { title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
+                                formatter: function(cell) {
+                                    const val = cell.getValue();
+                                    if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`;
+                                    return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
+                                }
+                            },
+                            { title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 120,
+                                formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
+                                bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
+                            }
+                        ],
+                        tableBuilt: function() { resolve(); }
+                    });
+                });
+                await _fixeAusgabenTableReadyPromise;
+            }
+
+            /* --- Daten Verarbeitung --- */
+
+            function _getFilteredData(tableData) {
+                const start = DOM.dateStart.value ? new Date(DOM.dateStart.value) : null;
+                const end = DOM.dateEnd.value ? new Date(DOM.dateEnd.value) : null;
+
+                if (start) start.setHours(0, 0, 0, 0);
+                if (end) end.setHours(23, 59, 59, 999);
+
+                return tableData.filter(row => {
+                    const rowDate = Utils.parseGermanDate(row.Buchungstag);
+                    if (!rowDate) return false;
+                    const isAfterStart = start ? rowDate >= start : true;
+                    const isBeforeEnd = end ? rowDate <= end : true;
+                    return isAfterStart && isBeforeEnd;
+                });
+            }
+
+            function _processData(filteredData, customCategories = []) {
+                const einnahmenData = [];
+                const ausgabenData = [];
+                let totalIncome = 0;
+                let totalExpenses = 0; 
+                let totalFixedExpenses = 0; 
+                let totalVariableExpenses = 0;
+                const monthlyData = {};
+                const scatterData = []; 
+                
+                // Custom Line Chart
+                const customMonthlyData = {}; 
+                const customCategorySet = new Set(customCategories || []);
+                const uniqueMonths = new Set(); 
+
+                filteredData.forEach(row => {
+                    const amount = row.Betrag;
+                    const tableRow = { ...row, Betrag: amount };
+                    const date = Utils.parseGermanDate(row.Buchungstag);
+
+                    if (amount > 0) {
+                        einnahmenData.push(tableRow);
+                        totalIncome += amount;
+                    } else if (amount < 0) {
+                        ausgabenData.push(tableRow);
+                        totalExpenses += amount;
+                        if (row.Fixkosten) {
+                            totalFixedExpenses += amount;
+                        } else {
+                            totalVariableExpenses += amount;
+                        }
+
+                        if (date && !row.Fixkosten) {
+                            scatterData.push({
+                                x: date.getTime(),
+                                y: Math.abs(amount),
+                                label: row["Verwendungszweck"] || 'N/A'
+                            });
+                        }
+                    }
+                });
+
+                filteredData.forEach(row => {
+                    const rowDate = Utils.parseGermanDate(row.Buchungstag);
+                    if (!rowDate) return;
+
+                    const monthKey = rowDate.getFullYear() + '-' + String(rowDate.getMonth() + 1).padStart(2, '0'); 
+                    uniqueMonths.add(monthKey); 
+
+                    if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
+                    }
+
+                    const amount = row.Betrag;
+                    if (amount > 0) {
+                        monthlyData[monthKey].income += amount;
+                    } else if (amount < 0) {
+                        const absAmount = Math.abs(amount);
+                        if (row.Fixkosten) monthlyData[monthKey].fixed += absAmount;
+                        else monthlyData[monthKey].variable += absAmount;
+                        
+                        if (customCategorySet.size > 0) {
+                            const rowCategory = (row.Kategorie || '').trim().toLowerCase();
+                            if (customCategorySet.has(rowCategory)) {
+                                if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
+                                if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
+                                customMonthlyData[monthKey][rowCategory] += absAmount;
+                            }
+                        }
+                    }
+                });
+                
+                const variableAusgabenData = ausgabenData.filter(row => !row.Fixkosten);
+                const fixeAusgabenData = ausgabenData.filter(row => !!row.Fixkosten);
+                const totalBalance = totalIncome + totalExpenses;
+
+                const categoryTotalsVariableExpenses = {};
+                variableAusgabenData.forEach(row => {
+                    const category = row.Kategorie || L("category_placeholder");
+                    const amount = Math.abs(row.Betrag);
+                    if (!categoryTotalsVariableExpenses[category]) categoryTotalsVariableExpenses[category] = 0;
+                    categoryTotalsVariableExpenses[category] += amount;
+                });
+
+                const sortedMonths = Object.keys(monthlyData).sort();
+                const lineChartLabels = sortedMonths.map(key => key);
+                const incomeData = sortedMonths.map(key => monthlyData[key].income);
+                const fixedData = sortedMonths.map(key => monthlyData[key].fixed);
+                const variableData = sortedMonths.map(key => monthlyData[key].variable);
+                const totalMonthlyExpenseData = sortedMonths.map(key => monthlyData[key].fixed + monthlyData[key].variable);
+                
+                let cumulativeExpense = 0;
+                const cumulativeExpenseData = sortedMonths.map(key => {
+                    cumulativeExpense += monthlyData[key].fixed + monthlyData[key].variable;
+                    return cumulativeExpense;
+                });
+                
+                const sortedCustomMonths = Array.from(uniqueMonths).sort();
+                const customLineChartDatasets = [];
+                (customCategories || []).forEach((category, index) => {
+                    const data = sortedCustomMonths.map(month => {
+                        return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
+                    });
+                    const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+                    customLineChartDatasets.push({
+                        label: category, 
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color.replace(')', ', 0.2)').replace('rgb', 'rgba'),
+                        fill: false,
+                        tension: 0.2
+                    });
+                });
+                
+                return {
+                    summary: { totalIncome, totalExpenses, totalBalance },
+                    details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
+                    expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
+                    overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
+                    lineChart: { 
+                        labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData
+                    },
+                    customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
+                    scatterPlot: { data: scatterData }
+                };
+            }
+            
+            /* --- Leiste mit Einnahmen Ausgaben Summe --- */
+
+            /**
+             * Aktualisiert die UI Anzeige mit Gesamteinnahmen, Gesamtausgaben und Saldo.
+             * Formatiert die Beträge entsprechend der aktuellen Währung und färbt den Saldo (grün/rot).
+             * @private
+             * @param {object} summary   Objekt mit den Summen (totalIncome, totalExpenses, totalBalance).
+             * @param {string} currentCurrency   Das Währungssymbol.
+             */
+            function _updateSummaryUI(summary, currentCurrency) {
+                const { totalIncome, totalExpenses, totalBalance } = summary;
+                const currencyFormatter = (value) => `${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency}`;
+                
+                DOM.totalIncome.textContent = currencyFormatter(totalIncome);
+                DOM.totalExpenses.textContent = currencyFormatter(Math.abs(totalExpenses));
+                DOM.totalBalance.textContent = currencyFormatter(totalBalance);
+
+                DOM.totalBalance.classList.remove('text-green-600', 'text-red-600', 'text-gray-800');
+                if (totalBalance > 0.01) DOM.totalBalance.classList.add('text-green-600');
+                else if (totalBalance < -0.01) DOM.totalBalance.classList.add('text-red-600');
+                else DOM.totalBalance.classList.add('text-gray-800');
+                
+                DOM.summaryDisplay.classList.remove('hidden');
+            }
+
+            function _updateOverviewPieChart(overviewPieData, currentCurrency) {
+                const { totalIncome, totalFixedExpenses, totalVariableExpenses } = overviewPieData;
+                const labelsOverview = [L('vis_summary_income'), L('vis_nested_fixed'), L('vis_nested_variable')];
+                const dataOverview = [totalIncome, Math.abs(totalFixedExpenses), Math.abs(totalVariableExpenses)];
+
+                if (totalIncome === 0 && totalFixedExpenses === 0 && totalVariableExpenses === 0) {
+                    DOM.chartEmptyStateOverview.classList.remove('hidden');
+                    DOM.overviewChart.classList.add('hidden');
+                    if (_myOverviewChartInstance) _myOverviewChartInstance.destroy();
+                    _myOverviewChartInstance = null;
+                } else {
+                    DOM.chartEmptyStateOverview.classList.add('hidden');
+                    DOM.overviewChart.classList.remove('hidden');
+
+                    if (_myOverviewChartInstance) { 
+                        _myOverviewChartInstance.data.labels = labelsOverview;
+                        _myOverviewChartInstance.data.datasets[0].data = dataOverview;
+                        _myOverviewChartInstance.options.plugins.title.text = L('vis_nested_pie_overview');
+                        _myOverviewChartInstance.update();
+                    } else { 
+                        const ctxOverview = DOM.overviewChart.getContext('2d');
+                        _myOverviewChartInstance = new Chart(ctxOverview, {
+                            type: 'pie',
+                            data: {
+                                labels: labelsOverview,
+                                datasets: [{
+                                    label: L('vis_summary_balance'),
+                                    data: dataOverview,
+                                    backgroundColor: [ DOM.OVERVIEW_CHART_COLORS.INCOME, DOM.CHART_COLORS[4], DOM.CHART_COLORS[0] ],
+                                    borderColor: '#fff',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'top' },
+                                    title: { display: true, text: L('vis_nested_pie_overview') },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.label || '';
+                                                let value = context.raw || 0;
+                                                let sum = context.chart.getDatasetMeta(0).total;
+                                                let percentage = sum > 0 ? (value * 100 / sum).toFixed(2) + '%' : '0.00%';
+                                                return `${label}: ${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency} (${percentage})`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+            
+            /**
+             * Aktualisiert oder erstellt das Kreisdiagramm für die Kategorien der variablen Ausgaben.
+             * Zeigt einen leeren Zustand an, wenn keine Daten vorhanden sind.
+             * @private
+             * @param {object} expensePieData   Objekt mit den Kategoriesummen.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             */
+            function _updateCategoriesPieChart(expensePieData, currentCurrency) {
+                const labelsExpenses = Object.keys(expensePieData.categoryTotals);
+                const dataExpenses = Object.values(expensePieData.categoryTotals);
+                const title = L('vis_nested_variable');
+
+                if (labelsExpenses.length === 0) {
+                    DOM.chartEmptyState.classList.remove('hidden');
+                    DOM.categoriesChart.classList.add('hidden');
+                    if (_myChartInstance) _myChartInstance.destroy();
+                    _myChartInstance = null;
+                } else {
+                    DOM.chartEmptyState.classList.add('hidden');
+                    DOM.categoriesChart.classList.remove('hidden');
+
+                    if (_myChartInstance) { 
+                        _myChartInstance.data.labels = labelsExpenses;
+                        _myChartInstance.data.datasets[0].data = dataExpenses;
+                        _myChartInstance.data.datasets[0].label = L('vis_summary_expenses');
+                        _myChartInstance.options.plugins.title.text = title;
+                        _myChartInstance.update();
+                    } else { 
+                        const ctx = DOM.categoriesChart.getContext('2d');
+                        _myChartInstance = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: labelsExpenses,
+                                datasets: [{
+                                    label: L('vis_summary_expenses'),
+                                    data: dataExpenses,
+                                    backgroundColor: DOM.CHART_COLORS,
+                                    borderColor: '#fff',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'top', labels: { boxWidth: 8, boxHeight: 8, padding: 3 } },
+                                    title: { display: true, text: title },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.label || '';
+                                                let value = context.raw || 0;
+                                                let sum = context.chart.getDatasetMeta(0).total;
+                                                let percentage = (value * 100 / sum).toFixed(2) + '%';
+                                                return `${label}: ${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency} (${percentage})`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            /**
+             * Aktualisiert oder erstellt das Liniendiagramm.
+             * Behandelt sowohl die Standardansicht (Einnahmen, Variable, Fixe, Gesamt) als auch die Ansicht für benutzerdefinierte Kategorien.
+             * @private
+             * @param {object} lineChartData   Objekt mit Labels und Datasets.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             * @param {boolean} [isCustom=false]   Gibt an, ob es sich um ein benutzerdefiniertes Diagramm handelt.
+             */
+            function _updateLineChart(lineChartData, currentCurrency, isCustom = false) {
+                let labels, datasets;
+                let title = L('vis_tab_lines');
+
+                if (isCustom) {
+                    labels = lineChartData.labels;
+                    datasets = lineChartData.datasets;
+                    title = 'Kategorien'; 
+                } else {
+                    const { labels: lineChartLabels, incomeData, fixedData, variableData, totalMonthlyExpenseData } = lineChartData;
+                    labels = lineChartLabels;
+                    datasets = [
+                        { label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+                        { label: L('vis_nested_variable'), data: variableData, borderColor: DOM.CHART_COLORS[0], backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+                        { label: L('vis_nested_fixed'), data: fixedData, borderColor: DOM.CHART_COLORS[4], backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+                        { 
+                            label: L('vis_summary_expenses'),
+                            data: totalMonthlyExpenseData,
+                            borderColor: '#F59E0B', 
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)', 
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y' 
+                        }
+                    ];
+                }
+
+                if (labels.length === 0 || (isCustom && datasets.length === 0)) {
+                    DOM.chartEmptyStateLines.classList.remove('hidden');
+                    DOM.lineChartCanvas.classList.add('hidden');
+                    DOM.chartEmptyStateLines.querySelector('p').textContent = isCustom ? 'Keine Daten für gewählte Kategorien' : L('vis_chart_lines_empty');
+                    DOM.chartEmptyStateLines.querySelector('.text-sm').textContent = isCustom ? 'Bitte Eingabe prüfen oder Zeitraum ändern.' : 'Bitte Zeitraum prüfen.';
+
+                    if (_myLineChartInstance) _myLineChartInstance.destroy();
+                    _myLineChartInstance = null;
+                } else {
+                    DOM.chartEmptyStateLines.classList.add('hidden');
+                    DOM.lineChartCanvas.classList.remove('hidden');
+
+                    if (_myLineChartInstance) { 
+                        _myLineChartInstance.data.labels = labels;
+                        _myLineChartInstance.data.datasets = datasets;
+                        _myLineChartInstance.options.plugins.title.text = title;
+                        _myLineChartInstance.options.plugins.legend.labels.font.size = isCustom ? 10 : 12;
+                        _myLineChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
+                        _myLineChartInstance.update();
+                    } else { 
+                        const ctxLine = DOM.lineChartCanvas.getContext('2d');
+                        _myLineChartInstance = new Chart(ctxLine, {
+                            type: 'line',
+                            data: { labels: labels, datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: { display: true, text: title },
+                                    legend: { labels: { font: { size: isCustom ? 10 : 12 }, boxWidth: 8, boxHeight: 8 } },
+                                    tooltip: {
+                                        mode: 'index',
+                                        intersect: false,
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                let value = context.parsed.y || 0;
+                                                return `${label}: ${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency}`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: { display: true, text: L('Betrag') + ` (${currentCurrency})` },
+                                        ticks: { callback: function(value) { return value.toLocaleString('de-DE', { maximumFractionDigits: 0 }); } }
+                                    },
+                                    x: { title: { display: true, text: L('Monat') } }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+            
+            /**
+             * Aktualisiert oder erstellt das Streudiagramm für einzelne Ausgaben.
+             * Zeigt jeden Posten als Punkt in Relation zu Datum und Betrag.
+             * @private
+             * @param {object} scatterPlotData   Objekt mit Array von Punkten {x, y, label}.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             */
+            function _updateScatterPlot(scatterPlotData, currentCurrency) {
+                const data = scatterPlotData.data;
+                const title = L('vis_scatter_title'); 
+
+                if (data.length === 0) {
+                    DOM.chartEmptyStateScatter.classList.remove('hidden');
+                    const pTitle = DOM.chartEmptyStateScatter.querySelector('p.text-xl') || DOM.chartEmptyStateScatter.querySelector('p');
+                    if (pTitle) pTitle.textContent = L('vis_scatter_empty'); 
+                    const pSub = DOM.chartEmptyStateScatter.querySelector('p.text-sm');
+                    if (pSub) pSub.textContent = L('vis_scatter_empty_sub');
+
+                    DOM.scatterChartCanvas.classList.add('hidden');
+                    if (_myScatterChartInstance) _myScatterChartInstance.destroy();
+                    _myScatterChartInstance = null;
+                } else {
+                    DOM.chartEmptyStateScatter.classList.add('hidden');
+                    DOM.scatterChartCanvas.classList.remove('hidden');
+
+                    if (_myScatterChartInstance) { 
+                        _myScatterChartInstance.data.datasets[0].data = data;
+                        _myScatterChartInstance.options.plugins.title.text = title; 
+                        _myScatterChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
+                        _myScatterChartInstance.update();
+                    } else { 
+                        const ctxScatter = DOM.scatterChartCanvas.getContext('2d');
+                        _myScatterChartInstance = new Chart(ctxScatter, {
+                            type: 'scatter',
+                            data: {
+                                datasets: [{
+                                    label: L('vis_summary_expenses'),
+                                    data: data,
+                                    backgroundColor: 'rgba(255, 99, 132, 0.7)', 
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }, 
+                                    title: { display: true, text: title },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const raw = context.raw;
+                                                const date = new Date(raw.x);
+                                                const dateString = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                                const purpose = raw.label || L('tooltip_unknown'); 
+                                                const value = raw.y || 0;
+                                                const valueString = `${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency}`;
+                                                return `${dateString} - ${valueString} (${purpose})`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        type: 'linear', 
+                                        title: { display: true, text: L('Buchungstag') },
+                                        ticks: {
+                                            callback: function(value) {
+                                                return new Date(value).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                            }
+                                        }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        title: { display: true, text: L('Betrag') + ` (${currentCurrency})` }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            /* --- Refactored Sub Routines --- */
+
+            function _handleEmptyData() {
+                _destroyCharts();
+                _destroyDetailTables();
+                DOM.summaryDisplay.classList.add('hidden');
+            }
+
+            /**
+             * Parst das Eingabefeld für benutzerdefinierte Diagramme, um festzustellen, ob spezifische Kategorien grafisch dargestellt werden sollen.
+             * Unterstützt "top4" für die vier größten Ausgabenkategorien oder eine kommagetrennte Liste.
+             * @private
+             * @param {Array<object>} filteredData   Die gefilterten Rohdaten.
+             * @returns {object} Ein Objekt mit customCategories (Array) und isCustomChart (Boolean).
+             */
+            function _getCustomChartConfig(filteredData) {
+                const rawInput = (DOM.customLinesInput.value || '').trim().toLowerCase();
+                let customCategories = [];
+                let isCustomChart = false;
+
+                if (rawInput === 'top4') {
+                    isCustomChart = true;
+                    const variableExpenses = filteredData.filter(row =>
+                        row.Betrag < 0 && !row.Fixkosten
+                    );
+                    const categoryTotals = {};
+                    const placeholderCategory = L("category_placeholder").toLowerCase();
+                    
+                    variableExpenses.forEach(row => {
+                        const category = (row.Kategorie || '').trim().toLowerCase();
+                        if (!category || category === placeholderCategory) return; 
+                        const amount = Math.abs(row.Betrag);
+                        categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+                    });
+                    
+                    customCategories = Object.entries(categoryTotals)
+                        .sort(([, a], [, b]) => b - a) 
+                        .slice(0, 4) 
+                        .map(([category]) => category); 
+
+                } else if (rawInput !== '') {
+                    isCustomChart = true;
+                    customCategories = rawInput
+                        .split(',')
+                        .map(s => s.trim().toLowerCase())
+                        .filter(s => s.length > 0);
+                }
+
+                return { customCategories, isCustomChart };
+            }
+
+            /**
+             * Aktualisiert den Bereich des Kreisdiagramms.
+             * Steuert, welches Kreisdiagramm (Übersicht oder Kategorien) basierend auf dem aktiven Tab angezeigt wird.
+             * @private
+             * @param {object} processedData   Das verarbeitete Datenobjekt mit Pie Daten.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             */
+            function _refreshPieSection(processedData, currentCurrency) {
+                if (DOM.visPieContentOverview.classList.contains('hidden')) return;
+
+                if (_activeOverviewTab === 'categories') {
+                    DOM.overviewChartContainer.classList.add('hidden');
+                    DOM.categoriesChartContainer.classList.remove('hidden');
+                    
+                    if (_myOverviewChartInstance) {
+                        _myOverviewChartInstance.destroy();
+                        _myOverviewChartInstance = null;
+                    }
+                    _updateCategoriesPieChart(processedData.expensePie, currentCurrency);
+                } else {
+                    DOM.overviewChartContainer.classList.remove('hidden');
+                    DOM.categoriesChartContainer.classList.add('hidden');
+                    
+                    if (_myChartInstance) {
+                        _myChartInstance.destroy();
+                        _myChartInstance = null;
+                    }
+                    _updateOverviewPieChart(processedData.overviewPie, currentCurrency);
+                }
+            }
+
+            /**
+             * Aktualisiert den Bereich des Liniendiagramms.
+             * Unterscheidet zwischen Standardansicht und benutzerdefinierter Ansicht.
+             * @private
+             * @param {object} processedData   Das verarbeitete Datenobjekt mit Line Daten.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             * @param {boolean} isCustomChart   Flag für benutzerdefiniertes Chart.
+             */
+            function _refreshLineSection(processedData, currentCurrency, isCustomChart) {
+                if (DOM.visContentLines.classList.contains('hidden')) return;
+
+                if (isCustomChart) {
+                    _updateLineChart(processedData.customLineChart, currentCurrency, true);
+                } else {
+                    _updateLineChart(processedData.lineChart, currentCurrency, false); 
+                }
+            }
+
+            /**
+             * Aktualisiert den Bereich des Streudiagramms.
+             * @private
+             * @param {object} processedData   Das verarbeitete Datenobjekt mit Scatter Daten.
+             * @param {string} currentCurrency   Das Währungssymbol.
+             */
+            function _refreshScatterSection(processedData, currentCurrency) {
+                if (DOM.visContentScatter.classList.contains('hidden')) return;
+                _updateScatterPlot(processedData.scatterPlot, currentCurrency);
+            }
+
+            /**
+             * Aktualisiert die aktuell sichtbare Detail Tabelle (Einnahmen, Variable oder Fixe Ausgaben).
+             * Verwendet die gecachten Daten, um Neuberechnungen zu vermeiden.
+             * @private
+             * @returns {Promise<void>}
+             */
+            async function _refreshDetailTables() {
+                if (DOM.visContentDetails.classList.contains('hidden')) return;
+
+                if (_activeDetailTab === 'einnahmen') {
+                    await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
+                } else if (_activeDetailTab === 'variable') {
+                    await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
+                } else if (_activeDetailTab === 'fixe') {
+                    await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
+                }
+            }
+
+            /**
+             * Aktualisiert alle Charts und Detail Tabellen.
+             */
+            async function updateChart() { 
+                const { tableData, currentCurrency } = Store.getState();
+                
+                //  Reset bei leeren Daten
+                if (tableData.length === 0) {
+                    _handleEmptyData();
+                    return; 
+                } 
+
+                // Daten vorbereiten und chachen
+                const filteredData = _getFilteredData(tableData);
+                const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
+                const processedData = _processData(filteredData, customCategories);
+                _cachedDetailData = processedData.details;
+
+                // UI Updates
+                _updateSummaryUI(processedData.summary, currentCurrency);
+                _refreshPieSection(processedData, currentCurrency);
+                _refreshLineSection(processedData, currentCurrency, isCustomChart);
+                _refreshScatterSection(processedData, currentCurrency);
+                
+                await _refreshDetailTables();
+            } 
+
+            //  Öffentliches API des Visualize Moduls 
+            return {
+                init: function() {
+                    if (_isInitialized) return;
+                    
+                    DOM.dateStart.addEventListener('change', updateChart);
+                    DOM.dateEnd.addEventListener('change', updateChart);
+                    DOM.customLinesInput.addEventListener('change', updateChart); 
+                    
+                    DOM.visPieTabOverview.addEventListener('click', () => showTab('overview'));
+                    DOM.visTabDetails.addEventListener('click', () => showTab('details'));
+                    DOM.visTabLines.addEventListener('click', () => showTab('lines'));
+                    DOM.visTabScatter.addEventListener('click', () => showTab('scatter')); 
+                    
+                    DOM.visOverviewToggleBtn.addEventListener('click', () => _handleOverviewToggle('overview'));
+                    DOM.visCategoriesToggleBtn.addEventListener('click', () => _handleOverviewToggle('categories'));
+
+                    DOM.visTabEinnahmen.addEventListener('click', () => _handleNestedTabClick('einnahmen'));
+                    DOM.visTabVariableAusgaben.addEventListener('click', () => _handleNestedTabClick('variable'));
+                    DOM.visTabFixeAusgaben.addEventListener('click', () => _handleNestedTabClick('fixe'));
+                    
+                    Store.subscribe((state, eventType) => {
+                        if (eventType === 'session_changed' || eventType === 'data_changed') {
+                            if (DOM.dateStart.value === '' && state.tableData.length > 0) {
+                                _setDateFiltersFromData(state.tableData);
+                            }
+                            updateChart();
+                        }
+                    });
+                    _isInitialized = true;
+                },
+                
+                destroy: function() {
+                    _destroyCharts();
+                    _destroyDetailTables(); 
+                    
+                    const currencyFormatter = (value) => `${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${DOM.DEFAULT_CURRENCY}`;
+                    DOM.totalIncome.textContent = currencyFormatter(0);
+                    DOM.totalExpenses.textContent = currencyFormatter(0);
+                    DOM.totalBalance.textContent = currencyFormatter(0);
+                    DOM.totalBalance.className = 'text-2xl font-bold text-gray-800';
+                    DOM.summaryDisplay.classList.add('hidden');
+                    
+                    DOM.dateStart.value = '';
+                    DOM.dateEnd.value = '';
+                    DOM.customLinesInput.value = '';
+                },
+                
+                update: updateChart,
+                showTab: showTab
+            };
+        })();
+
+
+        /**
+         * @namespace MainController
+         * @description Haupt Controller (Router). Verwaltet die Seitennavigation
+         * und globale Aktionen (Reset, Export, Save JSON).
+         */
+        const MainController = (function() {
+            /**
+             * Zeigt die gewünschte Seite an und (de)aktiviert Nav Buttons / Header.
+             * @memberof MainController
+             * @param {string} pageName   Der Name der anzuzeigenden Seite ('home', 'import', 'loadJson', 'categorize', 'visualize').
+             */
+            function showPage(pageName) {
+                // Alle Seiten ausblenden
+                DOM.pageHome.classList.add('hidden');
+                DOM.pageImport.classList.add('hidden');
+                DOM.pageLoadJson.classList.add('hidden');
+                DOM.pageCategorize.classList.add('hidden');
+                DOM.pageVisualize.classList.add('hidden');
+                
+                // Nav Stile
+                const { BASE, ACTIVE, INACTIVE, DISABLED } = DOM.NAV_STYLES;
+                
+                // Alle Nav Buttons zurücksetzen
+                DOM.navHomeBtn.className = `${BASE} ${INACTIVE} flex items-center gap-2`;
+                
+                const { tableData } = Store.getState();
+                const dataLoaded = tableData.length > 0;
+                
+                // Import Button ist immer aktiv
+                DOM.navImportBtn.className = `${BASE} ${INACTIVE}`;
+                DOM.navImportBtn.disabled = false;
+                
+                DOM.navCategorizeBtn.className = `${BASE} ${dataLoaded ? INACTIVE : DISABLED}`;
+                DOM.navCategorizeBtn.disabled = !dataLoaded;
+                
+                DOM.navVisualizeBtn.className = `${BASE} ${dataLoaded ? INACTIVE : DISABLED}`;
+                DOM.navVisualizeBtn.disabled = !dataLoaded;
+
+                // Ziel Seite anzeigen und Nav Button aktivieren
+                if (pageName === 'home') {
+                    DOM.pageHome.classList.remove('hidden');
+                    DOM.headerActions.classList.add('hidden');
+                    //DOM.headerNav.classList.add('hidden'); // NavMenü bei geladenem State nicht ausblenden
+
+                } else if (pageName === 'import') {
+                    DOM.pageImport.classList.remove('hidden');
+                    DOM.navImportBtn.className = `${BASE} ${ACTIVE}`;
+                    DOM.headerNav.classList.remove('hidden');
+                    DOM.headerActions.classList.remove('hidden');
+                    
+                    DOM.importMappingStep.classList.add('hidden');
+                    DOM.importInitialStep.classList.remove('hidden');
+
+                } else if (pageName === 'loadJson') {
+                    DOM.pageLoadJson.classList.remove('hidden');
+                    DOM.navImportBtn.className = `${BASE} ${ACTIVE}`;
+                    DOM.headerNav.classList.remove('hidden');
+                    DOM.headerActions.classList.remove('hidden');
+
+                } else if (pageName === 'categorize' && dataLoaded) {
+                    DOM.pageCategorize.classList.remove('hidden');
+                    DOM.navCategorizeBtn.className = `${BASE} ${ACTIVE}`;
+                    DOM.headerNav.classList.remove('hidden');
+                    DOM.headerActions.classList.remove('hidden');
+
+                } else if (pageName === 'visualize' && dataLoaded) {
+                    DOM.pageVisualize.classList.remove('hidden');
+                    DOM.navVisualizeBtn.className = `${BASE} ${ACTIVE}`;
+                    DOM.headerNav.classList.remove('hidden');
+                    DOM.headerActions.classList.remove('hidden');
+                    
+                    VisualizeModule.showTab('overview');
+                    
+                    // Initialisiere den Detail Tab auf Einnahmen
+                    _resetNestedTabToEinnahmen();
+                    
+                } else {
+                    // Fallback, wenn z.B. 'categorize' ohne Daten aufgerufen wird
+                    DOM.pageHome.classList.remove('hidden');
+                    DOM.headerActions.classList.add('hidden');
+                    DOM.headerNav.classList.add('hidden');
+                }
+                
+                // Header Buttons (De)aktivieren
+                DOM.resetBtn.classList.toggle('hidden', pageName === 'home');
+                DOM.exportBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
+                DOM.saveJsonBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
+            }
+            
+            // Helper für das Zurücksetzen des Detail Tabs 
+            function _resetNestedTabToEinnahmen() {
+                DOM.visContentEinnahmen.classList.remove('hidden');
+                DOM.visContentVariableAusgaben.classList.add('hidden');
+                DOM.visContentFixeAusgaben.classList.add('hidden');
+                DOM.visTabEinnahmen.classList.add('active');
+                DOM.visTabVariableAusgaben.classList.remove('active');
+                DOM.visTabFixeAusgaben.classList.remove('active');
+            }
+
+
+            /**
+             * Verarbeitet den Klick auf den "Reset" Button.
+             * @private
+             */
+            async function _handleReset() {
+                const isConfirmed = await Utils.showConfirmationModal(
+                    "confirm_reset_title",
+                    "confirm_reset_message",
+                    "confirm_reset_btn"
+                );
+                
+                if (isConfirmed) {
+                    Store.reset();
+                    CategorizeModule.destroy();
+                    VisualizeModule.destroy();
+                    
+                    // Regel UI manuell zurücksetzen (da disabled)
+                    DOM.ruleSearch.disabled = true;
+					DOM.ruleCategory.disabled = true;
+                    DOM.ruleCategory.value = '';
+                    
+                    DOM.ruleFixkostenCheckbox.disabled = true;
+                    DOM.ruleFixkostenCheckbox.checked = false;
+                    
+                    Utils.showStatus("msg_session_reset", 'info');
+                    showPage('home');
+                }
+            }
+            
+            /**
+             * Speichert die aktuellen Daten (Store) als JSON Datei.
+             * @private
+             */
+            function _handleSaveJson() {
+                const { tableData, savedRules, currentCurrency } = Store.getState();
+
+                if (tableData.length === 0 && savedRules.length === 0) {
+                    Utils.showStatus("msg_no_data_to_save", 'info');
+                    return;
+                }
+                
+                const dataToSave = {
+                    currency: currentCurrency, 
+                    rules: savedRules,
+                    data: tableData
+                };
+                
+                const jsonString = JSON.stringify(dataToSave, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Haushaltsbuch_Daten.json';
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                Utils.showStatus("msg_json_saved", 'success');
+            }
+            
+            /**
+             * Zeigt das Info Modal an (verwendet das Bestätigungsfenster).
+             * @private
+             */
+            function _handleInfoClick() {
+                // Verwendet showConfirmationModal im Info Modus
+                Utils.showConfirmationModal(
+                    "info_modal_title",
+                    "info_modal_message",
+                    "modal_btn_close", // Dummy, da der Button bei Info ausgeblendet wird
+                    [], // Keine Platzhalter
+                    true // Info-Modus
+                );
+            }
+
+            //  Öffentliches API des MainControllers 
+            return {
+                /**
+                 * Initialisiert den Controller und bindet die Haupt Navigations Listener.
+                 */
+                init: function() {
+                    DOM.navHomeBtn.addEventListener('click', () => showPage('home'));
+                    DOM.navImportBtn.addEventListener('click', () => showPage('import'));
+                    DOM.navCategorizeBtn.addEventListener('click', () => showPage('categorize'));
+                    DOM.navVisualizeBtn.addEventListener('click', () => showPage('visualize'));
+
+                    DOM.resetBtn.addEventListener('click', _handleReset);
+                    DOM.exportBtn.addEventListener('click', () => CategorizeModule.exportCsv());
+                    DOM.saveJsonBtn.addEventListener('click', _handleSaveJson);
+                    
+                    if (DOM.infoBtn) { 
+                        DOM.infoBtn.addEventListener('click', _handleInfoClick);
+                    }
+                },
+                
+                /**
+                 * Öffentliche Methode zum Anzeigen einer Seite.
+                 */
+                showPage: showPage
+            };
+        })();
+
+
+        /**
+         * Haupt Einstiegspunkt. Wird nach dem Laden des DOMs ausgeführt.
+         * Initialisiert alle Module und startet die Anwendung.
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            Utils.updateTexts(); // Alle UI Texte lokalisieren
+            
+            // Module initialisieren
+            ImportModule.init();
+            CategorizeModule.init();
+            VisualizeModule.init();
+            MainController.init();
+            MainController.showPage('home');
+			IconLoader.run(document);
+        }); 
+
+    </script>
+</body>
+</html>
