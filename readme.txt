@@ -1,12 +1,13 @@
-Haushaltsbuch.html
+## Haushaltsbuch
+
+(see below for english version)
 
 Bei meiner Suche nach einer Haushaltsbuch App musste ich enttäuscht feststellen, dass keine meinen Anforderungen entsprach.
-Teils waren sie mehrere hundert Megabyte groß und die meisten unterstützten keinen Datenexport, sondern nur eine proprietäre Speicherdatei.
-Ein paar packten die Daten gleich ganz in irgendeine anonyme Cloud. Alles Ausschlusskriterien denn 
-wer will schon seine Daten unerreichbar irgendeinem Hersteller ausgeliefert sehen. 
-Auch waren fast alle Produkte Closed Source, erlaubten also nicht die offene, gemeinschaftliche Weiterentwicklung des Programmcodes.
+Teils waren sie mehrere hundert Megabyte groß und die meisten unterstützten keinen Datenexport, sondern nur eine proprietäre Speicherdatei. Ein paar packten die Daten gleich ganz in irgendeine anonyme Cloud.
+Ich wollte diese Daten nicht unerreichbar irgendeinem Hersteller ausgeliefert sehen. Auch waren fast alle Produkte Closed Source, erlaubten also nicht die offene, gemeinschaftliche Weiterentwicklung des Programmcodes.
 
-Also startete ich "Haushaltsbuch". 
+Als Lösung dafür startete ich "Haushaltsbuch". 
+
 Entwicklungsziele dabei sind: 
  einfache Verständlichkeit,
  Internationalisierung (trans.js),
@@ -24,9 +25,13 @@ Haushaltsbuch.html kann auch von einem usb stick gestartet werden.
 Enjoy!
 Thorsten
 
+![Data Visualisation](https://github.com/Thorsten7701/Haushaltsbuch/blob/home/screenshots/3pie_chart.PNG)
+
 Wenn euch die App gefällt, überlegt euch doch mir ein schönes Foto mit einem Spruch von euch zu schicken.
 Später wird es dafür einen Instagram oä account für das tool geben.
 vielen Dank!  arjunae@nurfuerspam.de  
+
+
 
 ----------------------------------
 English
