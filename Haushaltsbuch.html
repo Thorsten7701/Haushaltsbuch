@@ -974,12 +974,12 @@
                 },
 
                 /**
-                 * Setzt den gesamten Tabellendaten Status.
+                 * Setzt den gesamten Tabellendaten Status. (Import CSV/JSON, reset)
                  * @param {Array<object>} data   Das neue Array mit Tabellendaten.
                  */
                 setTableData: function(data) {
                     _state.tableData = data;
-                    _emit('data_changed'); 
+                    _emit('session_changed'); 
                 },
                 
                 /**
