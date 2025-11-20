@@ -1749,34 +1749,28 @@
                 const hasData = state.tableData.length > 0;
 
                 // update Liste, Datalist, Buttons
-                if ( eventType === 'session_changed') {
+                if (eventType === 'session_changed') {
                     _renderRulesList(state.savedRules);
                     _renderCategoryDatalist(state);
-                    _updateMatchCountAndButtonState(); 
+                    _updateMatchCountAndButtonState();
                 }
-                
+
                 DOM.ruleSearch.disabled = !hasData;
                 DOM.ruleCategory.disabled = !hasData;
                 DOM.ruleFixkostenCheckbox.disabled = !hasData;
                 DOM.saveRuleBtn.disabled = !hasData;
-                
-                // Fälle Import, JSON Load, Regel-Änderung
+
+                // Fälle Import, JSON Load, Regel Änderung
                 if (eventType === 'session_changed') {
-                    
                     if (hasData) {
-                        if (!_tableInstance) {
-                            // neu initialisieren
-                            _initTable(state.tableData);
-                        } else {
-                            // Daten ersetzen
-                            _tableInstance.replaceData(state.tableData);
-                        }
+                        // init statt replace wg rendering Problemen bei versteckter Tabelle
+                        _initTable(state.tableData);
                     } else {
                         // Keine Daten (z.B. nach Reset)
                         if (_tableInstance) {
                             _tableInstance.destroy();
                             _tableInstance = null;
-                            _tableReadyPromise = null; 
+                            _tableReadyPromise = null;
                         }
                         DOM.emptyState.classList.remove('hidden');
                     }

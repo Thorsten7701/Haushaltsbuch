@@ -15,7 +15,8 @@ Entwicklungsziele dabei sind:
  Internationalisierung (trans.js),
  Kompatibilität mit libreoffice & excel,
  Im- und Exportierbarkeit der Daten (CSV und json), 
- gute Auswertungsfunktionen,
+ sehr gute Auswertungsfunktionen,
+ keine datenbank abhängigkeit,  
  komplett lokaler Betrieb ohne Installation sowie
 Offener, strukturierter und dokumentierter Quellcode.
 
@@ -52,6 +53,7 @@ So I started "Haushaltsbuch". The development goals are:
  compatibility with LibreOffice & Excel, 
  import and exportability of data (CSV and JSON), 
  good analysis functions, 
+ no database dependency,
 and complete local operation without installation.
 
 That was in 2024, and in the meantime, the project has reached a satisfactory state. This is therefore the first public version, Beta45. The license is the free GPLv3.
