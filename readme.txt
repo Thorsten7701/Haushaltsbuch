@@ -1,8 +1,9 @@
 ## Haushaltsbuch 
+Household budget (see below for english version)
 
-Demo: https://thorsten7701.github.io/Haushaltsbuch/Haushaltsbuch.html
 
-(see below for english version)
+## LiveDemo: https://thorsten7701.github.io/Haushaltsbuch/Haushaltsbuch.html
+play with it: dummy.json
 
 Bei meiner Suche nach einer Haushaltsbuch App musste ich enttäuscht feststellen, dass keine meinen Anforderungen entsprach.
 Teils waren sie mehrere hundert Megabyte groß und die meisten unterstützten keinen Datenexport, sondern nur eine proprietäre Speicherdatei. Ein paar packten die Daten gleich ganz in irgendeine anonyme Cloud.
@@ -11,12 +12,11 @@ Ich wollte diese Daten nicht unerreichbar irgendeinem Hersteller ausgeliefert se
 Als Lösung dafür startete ich "Haushaltsbuch". 
 
 Entwicklungsziele dabei sind: 
- einfache Verständlichkeit,
- Internationalisierung (trans.js),
+  einfache Verständlichkeit,
+  Internationalisierung (trans.js),
  Kompatibilität mit libreoffice & excel,
  Im- und Exportierbarkeit der Daten (CSV und json), 
- sehr gute Auswertungsfunktionen,
- keine datenbank abhängigkeit,  
+ sehr gute Auswertungsfunktionen,  
  komplett lokaler Betrieb ohne Installation sowie
 Offener, strukturierter und dokumentierter Quellcode.
 
@@ -30,15 +30,14 @@ Thorsten
 
 ![Data Visualisation](https://github.com/Thorsten7701/Haushaltsbuch/blob/home/screenshots/3pie_chart.PNG)
 
-Wenn euch die App gefällt, überlegt euch doch mir ein schönes Foto mit einem Spruch von euch zu schicken.
-Später wird es dafür einen Instagram oä account für das tool geben.
+Wenn euch die App gefällt, überlegt euch doch mir ein schönes Foto mit einem Spruch von euch zu schicken. Später wird es dafür einen Instagram oä account für das tool geben.
 vielen Dank!  arjunae@nurfuerspam.de  
 
 
 
-----------------------------------
-English
-----------------------------------
+----------------------
+## Household budget
+---------------------
 
 In my search for a household budget app, I was disappointed to find that none met my requirements.
 Most didn't support data export, only a proprietary save file; some were several hundred megabytes large.
@@ -53,7 +52,6 @@ So I started "Haushaltsbuch". The development goals are:
  compatibility with LibreOffice & Excel, 
  import and exportability of data (CSV and JSON), 
  good analysis functions, 
- no database dependency,
 and complete local operation without installation.
 
 That was in 2024, and in the meantime, the project has reached a satisfactory state. This is therefore the first public version, Beta45. The license is the free GPLv3.
@@ -63,3 +61,31 @@ Enjoy! Thorsten
 
 If you like the app, please consider sending me a nice photo with a quote from you.
 Later, there will be an Instagram or similar account for the tool. Thank you! arjunae@nurfuerspam.de
+
+
+-----------
+## Tech
+----------
+
+
+The JavaScript logic is organized into the following modules:
+
+DOM: Holds references to all important elements.
+Utils: A collection of helper functions (e.g date parsing, modals, status messages).
+Store: States (transaction data, rules) It uses a publish-subscribe logik.
+MainController: Controls page visibility.	
+ImportModule: CSV and JSON file imports. 
+CategorizeModule: The main data table and the rule creation UI.	
+VisualizeModule: Al charts and detailed tables on the visualization page.
+Internationalization: Translations and Currency settings support via trans.js ( data-i18n attr).
+IconLoader.js: A lightweight, zero-dependency solution for rendering eg FontAwesome SVG icons locally. 
+
+All functions are JSDoc annotated.
+
+Libraries:
+
+Tailwind CSS:  CSS framework
+Tabulator.js:  data grids
+Chart.js: pie charts and line charts
+PapaParse.js: parse CSV files
+Font Awesome: UI icons

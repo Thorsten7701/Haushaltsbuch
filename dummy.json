@@ -1,0 +1,2453 @@
+{
+  "currency": "€",
+  "rules": [
+    {
+      "search": "Gebühr",
+      "category": "Kontogebühr",
+      "isFixkosten": true
+    },
+    {
+      "search": "tilgung",
+      "category": "Kredit",
+      "isFixkosten": true
+    },
+    {
+      "search": "rewe",
+      "category": "Lebensmittel",
+      "isFixkosten": false
+    },
+    {
+      "search": "Edeka",
+      "category": "Lebensmittel",
+      "isFixkosten": false
+    },
+    {
+      "search": "Aldi",
+      "category": "Lebensmittel",
+      "isFixkosten": false
+    },
+    {
+      "search": "penny",
+      "category": "Lebensmittel",
+      "isFixkosten": false
+    },
+    {
+      "search": "Miete",
+      "category": "Miete",
+      "isFixkosten": true
+    },
+    {
+      "search": "Restaurants",
+      "category": "Freizeit",
+      "isFixkosten": false
+    },
+    {
+      "search": "netflix",
+      "category": "Streaming",
+      "isFixkosten": false
+    },
+    {
+      "search": "sky",
+      "category": "Streaming",
+      "isFixkosten": false
+    },
+    {
+      "search": "twitch",
+      "category": "twitch",
+      "isFixkosten": false
+    },
+    {
+      "search": "strom",
+      "category": "strom",
+      "isFixkosten": true
+    },
+    {
+      "search": "tankstellen",
+      "category": "tankstellen",
+      "isFixkosten": false
+    },
+    {
+      "search": "Versich",
+      "category": "Versicherungen",
+      "isFixkosten": true
+    }
+  ],
+  "data": [
+    {
+      "id": 0,
+      "Buchungstag": "2024-09-29",
+      "Verwendungszweck": "Gebühr",
+      "Betrag": -14.7,
+      "Kategorie": "Kontogebühr",
+      "Fixkosten": 1
+    },
+    {
+      "id": 1,
+      "Buchungstag": "2024-12-30",
+      "Verwendungszweck": "Gebühr",
+      "Betrag": -15.2,
+      "Kategorie": "Kontogebühr",
+      "Fixkosten": 1
+    },
+    {
+      "id": 2,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "tilgung",
+      "Betrag": -79.15,
+      "Kategorie": "Kredit",
+      "Fixkosten": 1
+    },
+    {
+      "id": 3,
+      "Buchungstag": "2024-10-31",
+      "Verwendungszweck": "tilgung",
+      "Betrag": -79.15,
+      "Kategorie": "Kredit",
+      "Fixkosten": 1
+    },
+    {
+      "id": 4,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "tilgung",
+      "Betrag": -79.15,
+      "Kategorie": "Kredit",
+      "Fixkosten": 1
+    },
+    {
+      "id": 5,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "tilgung",
+      "Betrag": -79.15,
+      "Kategorie": "Kredit",
+      "Fixkosten": 1
+    },
+    {
+      "id": 6,
+      "Buchungstag": "2025-02-02",
+      "Verwendungszweck": "tilgung",
+      "Betrag": -79.15,
+      "Kategorie": "Kredit",
+      "Fixkosten": 1
+    },
+    {
+      "id": 7,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "REWE",
+      "Betrag": -11.26,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 8,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "REWE",
+      "Betrag": -11.35,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 9,
+      "Buchungstag": "2024-09-02",
+      "Verwendungszweck": "REWE",
+      "Betrag": -4.68,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 10,
+      "Buchungstag": "2024-09-02",
+      "Verwendungszweck": "REWE",
+      "Betrag": -9.85,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 11,
+      "Buchungstag": "2024-09-03",
+      "Verwendungszweck": "REWE",
+      "Betrag": -19.19,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 12,
+      "Buchungstag": "2024-09-04",
+      "Verwendungszweck": "REWE",
+      "Betrag": -11.86,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 13,
+      "Buchungstag": "2024-09-05",
+      "Verwendungszweck": "REWE",
+      "Betrag": -12.56,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 14,
+      "Buchungstag": "2024-09-08",
+      "Verwendungszweck": "REWE",
+      "Betrag": -16.9,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 15,
+      "Buchungstag": "2024-09-09",
+      "Verwendungszweck": "REWE",
+      "Betrag": -10.57,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 16,
+      "Buchungstag": "2024-09-10",
+      "Verwendungszweck": "REWE",
+      "Betrag": -19.95,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 17,
+      "Buchungstag": "2024-09-15",
+      "Verwendungszweck": "REWE",
+      "Betrag": -12.74,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 18,
+      "Buchungstag": "2024-09-15",
+      "Verwendungszweck": "REWE",
+      "Betrag": -25.92,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 19,
+      "Buchungstag": "2024-09-16",
+      "Verwendungszweck": "REWE",
+      "Betrag": -16.91,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 20,
+      "Buchungstag": "2024-09-17",
+      "Verwendungszweck": "REWE",
+      "Betrag": -8.98,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 21,
+      "Buchungstag": "2024-09-18",
+      "Verwendungszweck": "REWE",
+      "Betrag": -19.94,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 22,
+      "Buchungstag": "2024-09-19",
+      "Verwendungszweck": "REWE",
+      "Betrag": -8.1,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 23,
+      "Buchungstag": "2024-09-22",
+      "Verwendungszweck": "REWE",
+      "Betrag": -1.83,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 24,
+      "Buchungstag": "2024-09-22",
+      "Verwendungszweck": "REWE",
+      "Betrag": -13.13,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 25,
+      "Buchungstag": "2024-09-22",
+      "Verwendungszweck": "REWE",
+      "Betrag": -8.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 26,
+      "Buchungstag": "2024-09-23",
+      "Verwendungszweck": "REWE",
+      "Betrag": -7.74,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 27,
+      "Buchungstag": "2024-09-23",
+      "Verwendungszweck": "REWE",
+      "Betrag": -8.45,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 28,
+      "Buchungstag": "2024-09-24",
+      "Verwendungszweck": "REWE",
+      "Betrag": -16.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 29,
+      "Buchungstag": "2024-09-25",
+      "Verwendungszweck": "REWE",
+      "Betrag": -10.63,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 30,
+      "Buchungstag": "2024-09-26",
+      "Verwendungszweck": "REWE",
+      "Betrag": -12.39,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 31,
+      "Buchungstag": "2024-09-29",
+      "Verwendungszweck": "REWE",
+      "Betrag": -10.63,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 32,
+      "Buchungstag": "2024-09-29",
+      "Verwendungszweck": "REWE",
+      "Betrag": -9.13,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 33,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "REWE",
+      "Betrag": -11.99,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 34,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "REWE",
+      "Betrag": -4.27,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 35,
+      "Buchungstag": "2024-10-01",
+      "Verwendungszweck": "REWE",
+      "Betrag": -9.13,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 36,
+      "Buchungstag": "2024-10-03",
+      "Verwendungszweck": "REWE",
+      "Betrag": -1.64,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 37,
+      "Buchungstag": "2024-10-03",
+      "Verwendungszweck": "REWE",
+      "Betrag": -13.12,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 38,
+      "Buchungstag": "2024-10-06",
+      "Verwendungszweck": "REWE",
+      "Betrag": -1.15,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 39,
+      "Buchungstag": "2024-10-06",
+      "Verwendungszweck": "REWE",
+      "Betrag": -13.42,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 40,
+      "Buchungstag": "2024-10-06",
+      "Verwendungszweck": "REWE",
+      "Betrag": -20.69,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 41,
+      "Buchungstag": "2024-10-07",
+      "Verwendungszweck": "REWE",
+      "Betrag": -10.28,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 42,
+      "Buchungstag": "2024-10-07",
+      "Verwendungszweck": "REWE",
+      "Betrag": -9.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 43,
+      "Buchungstag": "2024-10-08",
+      "Verwendungszweck": "REWE",
+      "Betrag": -1.62,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 44,
+      "Buchungstag": "2024-10-09",
+      "Verwendungszweck": "REWE",
+      "Betrag": -16.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 45,
+      "Buchungstag": "2024-10-10",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -10.6,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 46,
+      "Buchungstag": "2024-10-13",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -19.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 47,
+      "Buchungstag": "2024-10-13",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -2.56,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 48,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -20.5,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 49,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -9.44,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 50,
+      "Buchungstag": "2024-10-16",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -28,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 51,
+      "Buchungstag": "2024-10-20",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -29,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 52,
+      "Buchungstag": "2024-10-21",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -2.6,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 53,
+      "Buchungstag": "2024-10-22",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -15,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 54,
+      "Buchungstag": "2024-10-23",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -5.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 55,
+      "Buchungstag": "2024-10-24",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -2.78,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 56,
+      "Buchungstag": "2024-10-27",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -28.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 57,
+      "Buchungstag": "2024-10-27",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -30.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 58,
+      "Buchungstag": "2024-10-28",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -5.46,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 59,
+      "Buchungstag": "2024-11-03",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -16.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 60,
+      "Buchungstag": "2024-11-03",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -22.6,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 61,
+      "Buchungstag": "2024-11-04",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -21.34,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 62,
+      "Buchungstag": "2024-11-05",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -6.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 63,
+      "Buchungstag": "2024-11-06",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -26.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 64,
+      "Buchungstag": "2024-11-07",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -25.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 65,
+      "Buchungstag": "2024-11-10",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -6.9,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 66,
+      "Buchungstag": "2024-11-11",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -16.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 67,
+      "Buchungstag": "2024-11-12",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -14.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 68,
+      "Buchungstag": "2024-11-13",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -7.5,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 69,
+      "Buchungstag": "2024-11-14",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -16.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 70,
+      "Buchungstag": "2024-11-17",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -16.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 71,
+      "Buchungstag": "2024-11-17",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -6.3,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 72,
+      "Buchungstag": "2024-11-18",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -17,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 73,
+      "Buchungstag": "2024-11-20",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -15.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 74,
+      "Buchungstag": "2024-11-25",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -6.5,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 75,
+      "Buchungstag": "2024-11-26",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -17,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 76,
+      "Buchungstag": "2024-11-27",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -11.34,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 77,
+      "Buchungstag": "2024-11-27",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -6.95,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 78,
+      "Buchungstag": "2024-11-28",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -20.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 79,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -21,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 80,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -14.1,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 81,
+      "Buchungstag": "2024-12-02",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -17.45,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 82,
+      "Buchungstag": "2024-12-03",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -16.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 83,
+      "Buchungstag": "2024-12-05",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -22.5,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 84,
+      "Buchungstag": "2024-12-08",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -18.1,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 85,
+      "Buchungstag": "2024-12-08",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -20.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 86,
+      "Buchungstag": "2024-12-09",
+      "Verwendungszweck": "EDEKA",
+      "Betrag": -18.3,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 87,
+      "Buchungstag": "2024-12-11",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -22.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 88,
+      "Buchungstag": "2024-12-12",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -16.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 89,
+      "Buchungstag": "2024-12-15",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -15.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 90,
+      "Buchungstag": "2024-12-15",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -25.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 91,
+      "Buchungstag": "2024-12-16",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -12.5,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 92,
+      "Buchungstag": "2024-12-17",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 93,
+      "Buchungstag": "2024-12-18",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -15.6,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 94,
+      "Buchungstag": "2024-12-22",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -20.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 95,
+      "Buchungstag": "2024-12-22",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -20.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 96,
+      "Buchungstag": "2024-12-26",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -37.7,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 97,
+      "Buchungstag": "2024-12-29",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -23.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 98,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -19.9,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 99,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -43.8,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 100,
+      "Buchungstag": "2025-01-26",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -31.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 101,
+      "Buchungstag": "2025-01-28",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -18.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 102,
+      "Buchungstag": "2025-01-30",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -16.36,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 103,
+      "Buchungstag": "2025-02-02",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -20.2,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 104,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "ALDI",
+      "Betrag": -16.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 105,
+      "Buchungstag": "2025-02-04",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -8.17,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 106,
+      "Buchungstag": "2025-02-06",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -6.95,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 107,
+      "Buchungstag": "2025-02-09",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -31.4,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 108,
+      "Buchungstag": "2025-02-12",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -12.43,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 109,
+      "Buchungstag": "2025-02-16",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -14.95,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 110,
+      "Buchungstag": "2025-02-16",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -25.46,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 111,
+      "Buchungstag": "2025-02-16",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -4.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 112,
+      "Buchungstag": "2025-02-17",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -4.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 113,
+      "Buchungstag": "2025-02-18",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -3.57,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 114,
+      "Buchungstag": "2025-02-20",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -21.19,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 115,
+      "Buchungstag": "2025-02-20",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -5.95,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 116,
+      "Buchungstag": "2025-02-23",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -22.19,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 117,
+      "Buchungstag": "2025-02-23",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -4.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 118,
+      "Buchungstag": "2025-02-23",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -4.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 119,
+      "Buchungstag": "2025-02-24",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -28.84,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 120,
+      "Buchungstag": "2025-02-24",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -4.76,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 121,
+      "Buchungstag": "2025-02-26",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -5.36,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 122,
+      "Buchungstag": "2025-02-27",
+      "Verwendungszweck": "PENNY",
+      "Betrag": -5.36,
+      "Kategorie": "Lebensmittel",
+      "Fixkosten": 0
+    },
+    {
+      "id": 123,
+      "Buchungstag": "2024-09-29",
+      "Verwendungszweck": "Medikamente",
+      "Betrag": -15,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 124,
+      "Buchungstag": "2025-02-17",
+      "Verwendungszweck": "Medikamente",
+      "Betrag": -20,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 125,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 126,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 127,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 128,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 129,
+      "Buchungstag": "2024-11-03",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 130,
+      "Buchungstag": "2024-11-03",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 131,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 132,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 133,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 134,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 135,
+      "Buchungstag": "2025-02-02",
+      "Verwendungszweck": "Miete",
+      "Betrag": -600,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 136,
+      "Buchungstag": "2025-02-02",
+      "Verwendungszweck": "Miete",
+      "Betrag": -120,
+      "Kategorie": "Miete",
+      "Fixkosten": 1
+    },
+    {
+      "id": 137,
+      "Buchungstag": "2025-01-06",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -20.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 138,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -24.77,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 139,
+      "Buchungstag": "2025-01-15",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -20.77,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 140,
+      "Buchungstag": "2025-01-19",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -22.28,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 141,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -15.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 142,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -18.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 143,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -22.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 144,
+      "Buchungstag": "2025-01-22",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 145,
+      "Buchungstag": "2025-01-26",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 146,
+      "Buchungstag": "2025-01-27",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 147,
+      "Buchungstag": "2025-01-27",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 148,
+      "Buchungstag": "2025-01-27",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 149,
+      "Buchungstag": "2025-01-28",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 150,
+      "Buchungstag": "2025-01-29",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 151,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.28,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 152,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 153,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -14.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 154,
+      "Buchungstag": "2025-02-05",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 155,
+      "Buchungstag": "2025-02-06",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 156,
+      "Buchungstag": "2025-02-09",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 157,
+      "Buchungstag": "2025-02-10",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 158,
+      "Buchungstag": "2025-02-10",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 159,
+      "Buchungstag": "2025-02-11",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 160,
+      "Buchungstag": "2025-02-12",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -23.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 161,
+      "Buchungstag": "2025-02-17",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -13.29,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 162,
+      "Buchungstag": "2025-02-19",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -16.78,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 163,
+      "Buchungstag": "2025-02-20",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -25.69,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 164,
+      "Buchungstag": "2025-02-24",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -27.09,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 165,
+      "Buchungstag": "2025-02-26",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -25.79,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 166,
+      "Buchungstag": "2025-02-27",
+      "Verwendungszweck": "Restaurants",
+      "Betrag": -17.78,
+      "Kategorie": "Freizeit",
+      "Fixkosten": 0
+    },
+    {
+      "id": 167,
+      "Buchungstag": "2025-02-13",
+      "Verwendungszweck": "Steam",
+      "Betrag": -13.06,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 168,
+      "Buchungstag": "2024-09-04",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 169,
+      "Buchungstag": "2024-09-26",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 170,
+      "Buchungstag": "2024-10-07",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 171,
+      "Buchungstag": "2024-10-07",
+      "Verwendungszweck": "netflix",
+      "Betrag": -8.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 172,
+      "Buchungstag": "2024-10-28",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 173,
+      "Buchungstag": "2024-11-04",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 174,
+      "Buchungstag": "2024-11-05",
+      "Verwendungszweck": "netflix",
+      "Betrag": -8.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 175,
+      "Buchungstag": "2024-11-26",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 176,
+      "Buchungstag": "2024-12-04",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 177,
+      "Buchungstag": "2024-12-05",
+      "Verwendungszweck": "netflix",
+      "Betrag": -8.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 178,
+      "Buchungstag": "2024-12-29",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 179,
+      "Buchungstag": "2025-01-06",
+      "Verwendungszweck": "netflix",
+      "Betrag": -8.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 180,
+      "Buchungstag": "2025-01-08",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 181,
+      "Buchungstag": "2025-01-27",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 182,
+      "Buchungstag": "2025-02-04",
+      "Verwendungszweck": "Sky",
+      "Betrag": -17.11,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 183,
+      "Buchungstag": "2025-02-05",
+      "Verwendungszweck": "netflix",
+      "Betrag": -8.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 184,
+      "Buchungstag": "2025-02-26",
+      "Verwendungszweck": "netflix",
+      "Betrag": -4.99,
+      "Kategorie": "Streaming",
+      "Fixkosten": 0
+    },
+    {
+      "id": 185,
+      "Buchungstag": "2024-10-03",
+      "Verwendungszweck": "Strom",
+      "Betrag": -54,
+      "Kategorie": "strom",
+      "Fixkosten": 1
+    },
+    {
+      "id": 186,
+      "Buchungstag": "2024-11-04",
+      "Verwendungszweck": "Strom",
+      "Betrag": -54,
+      "Kategorie": "strom",
+      "Fixkosten": 1
+    },
+    {
+      "id": 187,
+      "Buchungstag": "2024-12-02",
+      "Verwendungszweck": "Strom",
+      "Betrag": -54,
+      "Kategorie": "strom",
+      "Fixkosten": 1
+    },
+    {
+      "id": 188,
+      "Buchungstag": "2025-01-05",
+      "Verwendungszweck": "Strom",
+      "Betrag": -54,
+      "Kategorie": "strom",
+      "Fixkosten": 1
+    },
+    {
+      "id": 189,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "Strom",
+      "Betrag": -54,
+      "Kategorie": "strom",
+      "Fixkosten": 1
+    },
+    {
+      "id": 190,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "Tankstellen",
+      "Betrag": -13.39,
+      "Kategorie": "tankstellen",
+      "Fixkosten": 0
+    },
+    {
+      "id": 191,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "Tankstellen",
+      "Betrag": -4.44,
+      "Kategorie": "tankstellen",
+      "Fixkosten": 0
+    },
+    {
+      "id": 192,
+      "Buchungstag": "2024-09-12",
+      "Verwendungszweck": "Tankstellen",
+      "Betrag": -18.81,
+      "Kategorie": "tankstellen",
+      "Fixkosten": 0
+    },
+    {
+      "id": 193,
+      "Buchungstag": "2025-02-24",
+      "Verwendungszweck": "Tankstellen",
+      "Betrag": -16.99,
+      "Kategorie": "tankstellen",
+      "Fixkosten": 0
+    },
+    {
+      "id": 194,
+      "Buchungstag": "2024-09-04",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 195,
+      "Buchungstag": "2024-09-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -10.77,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 196,
+      "Buchungstag": "2024-09-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 197,
+      "Buchungstag": "2024-09-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 198,
+      "Buchungstag": "2024-09-15",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 199,
+      "Buchungstag": "2024-09-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 200,
+      "Buchungstag": "2024-09-22",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 201,
+      "Buchungstag": "2024-09-23",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 202,
+      "Buchungstag": "2024-09-23",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 203,
+      "Buchungstag": "2024-09-24",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 204,
+      "Buchungstag": "2024-09-24",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 205,
+      "Buchungstag": "2024-09-30",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 206,
+      "Buchungstag": "2024-10-06",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 207,
+      "Buchungstag": "2024-10-06",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 208,
+      "Buchungstag": "2024-10-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 209,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 210,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 211,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 212,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 213,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 214,
+      "Buchungstag": "2024-10-15",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 215,
+      "Buchungstag": "2024-10-15",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 216,
+      "Buchungstag": "2024-10-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 217,
+      "Buchungstag": "2024-10-21",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 218,
+      "Buchungstag": "2024-10-21",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 219,
+      "Buchungstag": "2024-10-23",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 220,
+      "Buchungstag": "2024-10-23",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 221,
+      "Buchungstag": "2024-11-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -0.82,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 222,
+      "Buchungstag": "2024-11-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 223,
+      "Buchungstag": "2024-11-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 224,
+      "Buchungstag": "2024-11-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 225,
+      "Buchungstag": "2024-11-17",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 226,
+      "Buchungstag": "2024-11-17",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 227,
+      "Buchungstag": "2024-11-18",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 228,
+      "Buchungstag": "2024-12-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 229,
+      "Buchungstag": "2024-12-15",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 230,
+      "Buchungstag": "2024-12-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 231,
+      "Buchungstag": "2024-12-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 232,
+      "Buchungstag": "2024-12-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 233,
+      "Buchungstag": "2024-12-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 234,
+      "Buchungstag": "2024-12-19",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 235,
+      "Buchungstag": "2024-12-22",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 236,
+      "Buchungstag": "2024-12-26",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 237,
+      "Buchungstag": "2024-12-26",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 238,
+      "Buchungstag": "2024-12-26",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 239,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 240,
+      "Buchungstag": "2025-01-02",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 241,
+      "Buchungstag": "2025-01-02",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 242,
+      "Buchungstag": "2025-01-02",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 243,
+      "Buchungstag": "2025-01-06",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 244,
+      "Buchungstag": "2025-01-06",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 245,
+      "Buchungstag": "2025-01-08",
+      "Verwendungszweck": "twitch",
+      "Betrag": -39.9,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 246,
+      "Buchungstag": "2025-01-08",
+      "Verwendungszweck": "twitch",
+      "Betrag": -39.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 247,
+      "Buchungstag": "2025-01-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 248,
+      "Buchungstag": "2025-01-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 249,
+      "Buchungstag": "2025-01-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 250,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 251,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 252,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 253,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 254,
+      "Buchungstag": "2025-01-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 255,
+      "Buchungstag": "2025-01-14",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 256,
+      "Buchungstag": "2025-01-15",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 257,
+      "Buchungstag": "2025-01-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 258,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -14.97,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 259,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -14.97,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 260,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 261,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 262,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 263,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 264,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 265,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 266,
+      "Buchungstag": "2025-01-20",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 267,
+      "Buchungstag": "2025-01-22",
+      "Verwendungszweck": "twitch",
+      "Betrag": -14.97,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 268,
+      "Buchungstag": "2025-01-22",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 269,
+      "Buchungstag": "2025-02-03",
+      "Verwendungszweck": "twitch",
+      "Betrag": -19.95,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 270,
+      "Buchungstag": "2025-02-04",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 271,
+      "Buchungstag": "2025-02-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 272,
+      "Buchungstag": "2025-02-12",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 273,
+      "Buchungstag": "2025-02-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 274,
+      "Buchungstag": "2025-02-13",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 275,
+      "Buchungstag": "2025-02-16",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 276,
+      "Buchungstag": "2025-02-17",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 277,
+      "Buchungstag": "2025-02-18",
+      "Verwendungszweck": "twitch",
+      "Betrag": -6.55,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 278,
+      "Buchungstag": "2025-02-19",
+      "Verwendungszweck": "twitch",
+      "Betrag": -3.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 279,
+      "Buchungstag": "2025-02-19",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 280,
+      "Buchungstag": "2025-02-19",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 281,
+      "Buchungstag": "2025-02-26",
+      "Verwendungszweck": "twitch",
+      "Betrag": -4.99,
+      "Kategorie": "twitch",
+      "Fixkosten": 0
+    },
+    {
+      "id": 282,
+      "Buchungstag": "2024-09-15",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -294.63,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 283,
+      "Buchungstag": "2024-10-14",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -294.63,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 284,
+      "Buchungstag": "2024-11-14",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -294.63,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 285,
+      "Buchungstag": "2024-12-15",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -294.63,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 286,
+      "Buchungstag": "2025-01-14",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -294.63,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 287,
+      "Buchungstag": "2025-02-16",
+      "Verwendungszweck": "Versicherungen",
+      "Betrag": -311.01,
+      "Kategorie": "Versicherungen",
+      "Fixkosten": 1
+    },
+    {
+      "id": 288,
+      "Buchungstag": "2025-02-12",
+      "Verwendungszweck": "vServer",
+      "Betrag": -57.94,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 289,
+      "Buchungstag": "2025-02-17",
+      "Verwendungszweck": "vServer",
+      "Betrag": -12.32,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 290,
+      "Buchungstag": "2025-02-09",
+      "Verwendungszweck": "Zeitschriften",
+      "Betrag": -15.96,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 291,
+      "Buchungstag": "2024-09-01",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 292,
+      "Buchungstag": "2024-10-01",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 293,
+      "Buchungstag": "2024-11-03",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 294,
+      "Buchungstag": "2024-12-01",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 295,
+      "Buchungstag": "2025-01-01",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    },
+    {
+      "id": 296,
+      "Buchungstag": "2025-02-02",
+      "Verwendungszweck": "",
+      "Betrag": 1900,
+      "Kategorie": "",
+      "Fixkosten": 0
+    }
+  ]
+}
