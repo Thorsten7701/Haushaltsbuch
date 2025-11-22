@@ -363,6 +363,13 @@
                     <label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to"></label>
                     <input type="date" id="dateEnd" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
                 </div>
+					<div class="flex items-center gap-2 border-l border-gray-300 pl-4 ml-2" data-i18n-title="vis_date_shift_tooltip" title="Verschiebt Fixkosten...">
+					<input type="checkbox" id="dateShiftCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]">
+					<label for="dateShiftCheckbox" class="text-sm font-medium text-gray-600 cursor-pointer select-none flex items-center">
+						<i class="fas fa-calendar-check text-purple-500 mr-1"></i>
+						<span data-i18n="vis_date_shift_label">Glätten</span>
+				</label>
+				</div>
             </div>
 
             <div class="flex-1"></div>
@@ -578,6 +585,7 @@
             // Visualisierungs Krams
             dateStart: document.getElementById('dateStart'),
             dateEnd: document.getElementById('dateEnd'),
+			dateShiftCheckbox: document.getElementById('dateShiftCheckbox'),
             categoriesChart: document.getElementById('categoriesChart'),
             chartEmptyState: document.getElementById('chartEmptyState'),
             
@@ -764,7 +772,7 @@
                 // Europäisches Format DD.MM.YYYY
                 if (/^\d{1,2}\.\d{1,2}\.\d{2,4}$/.test(s)) {
                     const [d, m, y] = s.split('.').map(v => parseInt(v, 10));
-                    const year = y < 100 ? (y < 70 ? 2000 + y : 1900 + y) : y;
+                    const year = y < 100 ? (y < 70 ? 2000 + y : 1900 + y) : y; // 2069 todo :) use a rolling date here
                     const date = new Date(year, m - 1, d);
                     return isNaN(date.getTime()) ? null : date;
                 }
@@ -842,29 +850,38 @@
                 document.title = L('app_title');
                 document.querySelector('header h1').innerHTML = `<i class="fas fa-person"></i> ${L('app_title')}`;
                 
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    const text = L(key);
+                // data-i18n ersetzt das ganze element, data-i18n-title nur titel
+                document.querySelectorAll('[data-i18n], [data-i18n-title]').forEach(el => {
+                    
+                    if (el.hasAttribute('data-i18n')) {
+                        const key = el.getAttribute('data-i18n');
+                        const text = L(key);
 
-                    if (el.tagName === 'INPUT') {
-                        if (el.type === 'submit' || el.type === 'button') {
-                            el.value = text;
-                        } else if (el.placeholder) {
-                            el.placeholder = text;
-                        }
-                    } else if (el.tagName === 'BUTTON') {
-                        let textNode = Array.from(el.childNodes).find(node => node.nodeType === 3 || (node.nodeType === 1 && node.tagName === 'SPAN'));
-                        if (textNode) {
-                            if(textNode.nodeType === 3) textNode.textContent = text;
-                            else textNode.textContent = text;
+                        if (el.tagName === 'INPUT') {
+                            if (el.type === 'submit' || el.type === 'button') {
+                                el.value = text;
+                            } else if (el.placeholder) {
+                                el.placeholder = text;
+                            }
+                        } else if (el.tagName === 'BUTTON') {
+                            let textNode = Array.from(el.childNodes).find(node => node.nodeType === 3 || (node.nodeType === 1 && node.tagName === 'SPAN'));
+                            if (textNode) {
+                                if(textNode.nodeType === 3) textNode.textContent = text;
+                                else textNode.textContent = text;
+                            } else {
+                                el.textContent = text; // Fallback
+                            }
                         } else {
-                            el.textContent = text; // Fallback
+                            el.textContent = text;
                         }
-                    } else {
-                        el.textContent = text;
+                    }
+
+                    if (el.hasAttribute('data-i18n-title')) {
+                        const titleKey = el.getAttribute('data-i18n-title');
+                        el.title = L(titleKey);
                     }
                 });
-
+				
                 //  Komplexe/gemischte Inhalte
                 DOM.navHomeBtn.innerHTML = `<i class="fas fa-home"></i> ${L('nav_home')}`;
                 DOM.navCategorizeBtn.textContent = L('nav_categorize');
@@ -876,17 +893,15 @@
                 DOM.exportBtn.innerHTML = `<i class="fas fa-file-export"></i> ${L('btn_export_csv')}`;
                 DOM.rulesTitle.innerHTML = `<i class="fas fa-filter"></i> ${L('rules_title')}`;
                 
-                //  Mapping Anweisung
-                DOM.mappingInstruction.innerHTML = L('mapping_instruction_base') + ' <br>' +
-                    DOM.MAPPING_FIELDS.map(f => `<span id="map-label-${f}">${L(f)}</span>`).join(', ');
+				DOM.mappingInstruction.innerHTML = L('mapping_instruction_base') + ' <br>' +
+				DOM.MAPPING_FIELDS.map(f => `<span id="map-label-${f}">${L(f)}</span>`).join(', ');
                 
-                //  Platzhalter und Fallbacks
                 DOM.ruleSearch.placeholder = L('rules_search_placeholder');
                 DOM.ruleCategory.placeholder = L('rules_category_placeholder');
               
                 const categoriesBtnSpan = DOM.visCategoriesToggleBtn.querySelector('span');
                 if (categoriesBtnSpan) {
-                    categoriesBtnSpan.textContent = L('vis_nested_variable'); // Setzt auf "Variable Ausgaben"
+                    categoriesBtnSpan.textContent = L('vis_nested_variable');
                 }
             }
 
@@ -1784,6 +1799,7 @@
                  */
                 init: function() {
                     if (_isInitialized) return;
+
                     
                     DOM.ruleSearch.addEventListener('input', _updateMatchPreviewAndFilter);
                     DOM.ruleCategory.addEventListener('input', _updateMatchCountAndButtonState); 
@@ -2145,8 +2161,72 @@
                 await _fixeAusgabenTableReadyPromise;
             }
 
-            /* --- Daten Verarbeitung --- */
+			/**
+             * Verschiebt Fixkosten vom Monatsende in den nächsten Monat.
+             * wenn sie mehrfach im selben Monat auftreten
+             * (z. B. am 1. und am 30.) und in den letzten 3 Tagen liegen, wird verschoben.
+             */
+			function _shiftDates(data) {
+                const occurrenceMap = {};
 
+                data.forEach(row => {
+                    if (!row.Fixkosten || !row.Buchungstag) return;
+                    
+                    const parts = row.Buchungstag.split('-');
+                    if (parts.length !== 3) return;
+                    
+                    // Key Format YYYY-MM|Kategorie|Betrag
+                    const key = `${parts[0]}-${parts[1]}|${row.Kategorie}|${row.Betrag}`;
+                    occurrenceMap[key] = (occurrenceMap[key] || 0) + 1;
+                });
+
+                // zweite Buchung  Verschieben
+                return data.map(row => {
+                    if (!row.Fixkosten) return row;
+                    if (!row.Buchungstag) return row;
+
+                    const parts = row.Buchungstag.split('-');
+                    if (parts.length !== 3) return row;
+
+                    let year = parseInt(parts[0], 10);
+                    let month = parseInt(parts[1], 10); // 1 bis 12
+                    const day = parseInt(parts[2], 10);
+
+                    // Prüfen ob diese Buchung in diesem Monat öfter als 1 mal vorkommt
+                    const key = `${parts[0]}-${parts[1]}|${row.Verwendungszweck}|${row.Betrag}`;
+                    const count = occurrenceMap[key] || 0;
+                    if (count < 2) return row;
+
+                    // Letzten Tag des Monats ermitteln
+                    const lastDayOfMonth = new Date(year, month, 0).getDate();
+
+                    // Wenn Tag in den letzten 3 Tagen liegt
+                    if (day >= lastDayOfMonth - 2) {
+                        // Monat erhöhen
+                        month++;
+                        
+                        // Jahreswechsel prüfen
+                        if (month > 12) {
+                            month = 1;
+                            year++;
+                        }
+
+                        const newDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
+					
+                        return {
+                            ...row,
+                            Buchungstag: newDateStr
+                        };
+                    }
+                    
+                    // Keine Änderung nötig
+                    return row;
+                });
+            }
+
+
+            /* --- Daten Verarbeitung --- */
+			
             function _getFilteredData(tableData) {
                 const start = DOM.dateStart.value ? new Date(DOM.dateStart.value) : null;
                 const end = DOM.dateEnd.value ? new Date(DOM.dateEnd.value) : null;
@@ -2173,14 +2253,16 @@
                 const monthlyData = {};
                 const scatterData = []; 
                 
-                // Custom Line Chart
                 const customMonthlyData = {}; 
                 const customCategorySet = new Set(customCategories || []);
                 const uniqueMonths = new Set(); 
 
                 filteredData.forEach(row => {
                     const amount = row.Betrag;
-                    const tableRow = { ...row, Betrag: amount };
+				
+                    const tableRow = { ...row }; 
+
+                    // Für Berechnungen parsen wir das (ggf. neue) Datum
                     const date = Utils.parseGermanDate(row.Buchungstag);
 
                     if (amount > 0) {
@@ -2205,10 +2287,12 @@
                     }
                 });
 
+                // Aggregation für Charts
                 filteredData.forEach(row => {
                     const rowDate = Utils.parseGermanDate(row.Buchungstag);
                     if (!rowDate) return;
 
+                    // Key Format YYYY-MM für Gruppierung
                     const monthKey = rowDate.getFullYear() + '-' + String(rowDate.getMonth() + 1).padStart(2, '0'); 
                     uniqueMonths.add(monthKey); 
 
@@ -2743,23 +2827,26 @@
                 }
             }
 
-            /**
-             * Aktualisiert alle Charts und Detail Tabellen.
-             */
-            async function updateChart() { 
-                const { tableData, currentCurrency } = Store.getState();
-                
-                //  Reset bei leeren Daten
-                if (tableData.length === 0) {
-                    _handleEmptyData();
-                    return; 
-                } 
+            async function updateChart() { 
+                const { tableData, currentCurrency } = Store.getState();
+                
+                //  Reset bei leeren Daten
+                if (tableData.length === 0) {
+                    _handleEmptyData();
+                    return; 
+                } 
 
-                // Daten vorbereiten und chachen
-                const filteredData = _getFilteredData(tableData);
-                const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
-                const processedData = _processData(filteredData, customCategories);
-                _cachedDetailData = processedData.details;
+                // Normalisieren, falls Checkbox aktiv
+                let workingData = tableData;
+                if (DOM.dateShiftCheckbox && DOM.dateShiftCheckbox.checked) {
+                    workingData = _shiftDates(tableData);
+                }
+
+                // Daten vorbereiten und chachen
+                const filteredData = _getFilteredData(workingData); // Hier workingData statt tableData nutzen
+                const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
+                const processedData = _processData(filteredData, customCategories);
+                _cachedDetailData = processedData.details;
 
                 // UI Updates
                 _updateSummaryUI(processedData.summary, currentCurrency);
@@ -2777,6 +2864,7 @@
                     
                     DOM.dateStart.addEventListener('change', updateChart);
                     DOM.dateEnd.addEventListener('change', updateChart);
+					DOM.dateShiftCheckbox.addEventListener('change', updateChart);
                     DOM.customLinesInput.addEventListener('change', updateChart); 
                     
                     DOM.visPieTabOverview.addEventListener('click', () => showTab('overview'));
@@ -2822,7 +2910,6 @@
                 showTab: showTab
             };
         })();
-
 
         /**
          * @namespace MainController
