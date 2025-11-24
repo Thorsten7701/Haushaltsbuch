@@ -363,19 +363,12 @@
 					<label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to"></label>
 					<input type="date" id="dateEnd" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
 				</div>
-					<div class="flex items-center gap-2 border-l border-gray-300 pl-4 ml-2" data-i18n-title="vis_date_shift_tooltip" title="Verschiebt Fixkosten...">
-					<input type="checkbox" id="dateShiftCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]">
-					<label for="dateShiftCheckbox" class="text-sm font-medium text-gray-600 cursor-pointer select-none flex items-center">
-						<i class="fas fa-calendar-check text-purple-500 mr-1"></i>
-						<span data-i18n="vis_date_shift_label">Glätten</span>
-				</label>
-				</div>
 			</div>
 
 			<div class="flex-1"></div>
 		</nav>
 
-		<div class="flex-grow min-h-0 bg-white rounded-b-lg shadow p-4 flex flex-col overflow-hidden">
+		<div class="flex-grow min-h-0 bg-white rounded-b-lg shadow flex flex-col overflow-hidden">
 			
 		<div id="visPieContentOverview" class="w-full flex-grow flex flex-col">
 			 <div class="flex-grow border border-gray-300 rounded-md bg-gray-50 flex flex-col">
@@ -435,20 +428,36 @@
 		</div>
 
 		<div id="visContentLines" class="w-full flex-grow flex flex-col hidden">
-			 <div class="flex-none p-1 border-b border-gray-300 bg-gray-50 flex items-center">
-				<label for="customLinesInput" class="mr-2 text-sm font-medium text-gray-700" data-i18n="vis_lines_label">Kategorien (Komma-getrennt):</label>
-			<input type="text" id="customLinesInput" placeholder="z.B. top4" class="w-full p-2 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm" value="">
+			
+			<div class="flex-none py-2 border-b border-gray-300 bg-gray-50 grid place-items-center">
+				<div class="flex items-center justify-center gap-3">
+					<label for="customLinesInput" class="whitespace-nowrap text-sm font-medium text-gray-700 m-0" data-i18n="vis_lines_label">Kategorien (Komma getrennt):</label>
+					<input type="text" id="customLinesInput" placeholder="z.B. top4" class="w-80 p-2 m-0 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm shadow-sm leading-normal" value="">
+				</div>
 			</div>
 			
-			 <div class="flex-grow border border-t-0 border-gray-300 rounded-b-md bg-gray-50"> 
-				<div class="flex-grow flex flex-col items-center justify-start relative">
+			<div class="flex-grow border border-t-0 border-gray-300 rounded-b-md bg-gray-50 flex flex-col overflow-hidden"> 
+				
+				<div class="flex-grow w-full max-w-4xl mx-auto flex items-center justify-center p-4 relative">
+					
 					<div id="chartEmptyStateLines" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
 						<i class="fas fa-chart-line text-6xl mb-4 opacity-20"></i>
 						<p class="text-xl" data-i18n="vis_chart_lines_empty">Keine Daten für Liniendiagramm</p>
 						<p class="text-sm">Bitte Zeitraum prüfen oder Kategorien eingeben.</p>
 					</div>
-					<div class="relative h-[49vh] w-[80vh]">
+					
+					<div class="relative w-full h-[54vh]">
 						<canvas id="lineChartCanvas"></canvas>
+					</div>
+				</div>
+
+				<div class="flex-none p-2 bg-gray-100 border-t border-gray-200 flex justify-center items-center">
+					<div class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1 rounded border border-gray-200 shadow-sm hover:bg-gray-50 transition" title="Verschiebt Fixkosten am Monatsende in den Folgemonat">
+						<input type="checkbox" id="dateShiftCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)] cursor-pointer m-0">
+						<label for="dateShiftCheckbox" class="text-sm font-medium text-gray-600 cursor-pointer select-none flex items-center gap-2 m-0">
+							<i class="fas fa-calendar-check text-purple-500"></i>
+							<span data-i18n="vis_date_shift_label">Glätten</span>
+						</label>
 					</div>
 				</div>
 			</div>
