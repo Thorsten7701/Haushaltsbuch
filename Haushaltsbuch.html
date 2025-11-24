@@ -427,12 +427,16 @@
 			</div>
 		</div>
 
-		<div id="visContentLines" class="w-full flex-grow flex flex-col hidden">
+<div id="visContentLines" class="w-full flex-grow flex flex-col hidden">
 			
 			<div class="flex-none py-2 border-b border-gray-300 bg-gray-50 grid place-items-center">
-				<div class="flex items-center justify-center gap-3">
-					<label for="customLinesInput" class="whitespace-nowrap text-sm font-medium text-gray-700 m-0" data-i18n="vis_lines_label">Kategorien (Komma getrennt):</label>
-					<input type="text" id="customLinesInput" placeholder="z.B. top4" class="w-80 p-2 m-0 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm shadow-sm leading-normal" value="">
+				<div class="inline-flex rounded-md shadow-sm" role="group">
+					<button type="button" id="visLinesAllBtn" class="px-3 py-1 text-sm font-medium text-white bg-[var(--color-scheme)] border border-[var(--color-scheme)] rounded-l-lg hover:bg-[var(--color-scheme-hover)]">
+						<i class="fas mr-2"></i> <span data-i18n="vis_lines_all">Alle</span>
+					</button>
+					<button type="button" id="visLinesTopBtn" class="px-3 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100">
+						<i class="fas fa-layer-group mr-2"></i> <span data-i18n="vis_lines_top">Top</span>
+					</button>
 				</div>
 			</div>
 			
@@ -443,7 +447,7 @@
 					<div id="chartEmptyStateLines" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
 						<i class="fas fa-chart-line text-6xl mb-4 opacity-20"></i>
 						<p class="text-xl" data-i18n="vis_chart_lines_empty">Keine Daten für Liniendiagramm</p>
-						<p class="text-sm">Bitte Zeitraum prüfen oder Kategorien eingeben.</p>
+						<p class="text-sm">Bitte Zeitraum prüfen.</p>
 					</div>
 					
 					<div class="relative w-full h-[54vh]">
@@ -632,7 +636,8 @@
 		visContentLines: document.getElementById('visContentLines'),
 		lineChartCanvas: document.getElementById('lineChartCanvas'),
 		chartEmptyStateLines: document.getElementById('chartEmptyStateLines'),
-		customLinesInput: document.getElementById('customLinesInput'), 
+		visLinesAllBtn: document.getElementById('visLinesAllBtn'),
+		visLinesTopBtn: document.getElementById('visLinesTopBtn'),
 
 		// Streudiagramm
 		visTabScatter: document.getElementById('visTabScatter'),
@@ -1700,6 +1705,7 @@
 		let _isInitialized = false;
 		
 		let _activeOverviewTab = 'overview';
+		let _actLinMode = 'all'; // Default auf "Alle" setzen
 		let _activeDetailTab = 'einnahmen'; 
 
 		let _einnahmenTableReadyPromise = null;
@@ -1847,6 +1853,13 @@
 			_updateToggleButtons();
 			await updateChart(); 
 		}
+		
+		// Handler für das Umschalten zw. Alle und Top im Liniendiagramm
+		async function _handLinTog(mode) {
+			_actLinMode = mode;
+			_updLinTogBtns();
+			await updateChart();
+		}
 
 		function _updateToggleButtons() {
 			const overviewBtn = DOM.visOverviewToggleBtn;
@@ -1864,6 +1877,27 @@
 				categoriesBtn.classList.remove(...inactiveClasses);
 				overviewBtn.classList.add(...inactiveClasses);
 				overviewBtn.classList.remove(...activeClasses);
+			}
+		}
+
+		// Aktualisiert das Styling der Line-Chart Toggle Buttons
+		function _updLinTogBtns() {
+			const allBtn = DOM.visLinesAllBtn;
+			const topBtn = DOM.visLinesTopBtn;
+			
+			const actCls = ['bg-[var(--color-scheme)]', 'text-white', 'border-[var(--color-scheme)]'];
+			const inactCls = ['bg-white', 'text-gray-900', 'border-gray-300', 'hover:bg-gray-100'];
+			
+			if (_actLinMode === 'all') {
+				allBtn.classList.add(...actCls);
+				allBtn.classList.remove(...inactCls);
+				topBtn.classList.add(...inactCls);
+				topBtn.classList.remove(...actCls);
+			} else {
+				topBtn.classList.add(...actCls);
+				topBtn.classList.remove(...inactCls);
+				allBtn.classList.add(...inactCls);
+				allBtn.classList.remove(...actCls);
 			}
 		}
 
@@ -2037,143 +2071,115 @@
 			});
 		}
 
-		function _processData(filteredData, customCategories = []) {
-			// Wir iterieren hier zweimal damits lesbar bleibt 
-			// console.time("ProcessDataTimer");
-			
-			const einnahmenData = [];
-			const ausgabenData = [];
-			let totalIncome = 0;
-			let totalExpenses = 0; 
-			let totalFixedExpenses = 0; 
-			let totalVariableExpenses = 0;
-			const monthlyData = {};
-			const scatterData = []; 
-			
-			const customMonthlyData = {}; 
-			const customCategorySet = new Set(customCategories || []);
-			const uniqueMonths = new Set(); 
+		function _getCustomChartConfig(filteredData) {
+			//  Toggle State
+			let customCategories = [];
+			let isCustomChart = false;
 
-			//  Split Income/Expenses und Berechnung der Summen.
-			filteredData.forEach(row => {
-				const amount = row.Betrag || 0;
-			
-				const tableRow = { ...row }; 
-				const date = Utils.parseGermanDate(row.Buchungstag);
-
-				if (amount > 0) {
-					einnahmenData.push(tableRow);
-					totalIncome += amount;
-				} else if (amount < 0) {
-					ausgabenData.push(tableRow);
-					totalExpenses += amount;
-					if (row.Fixkosten) {
-						totalFixedExpenses += amount;
-					} else {
-						totalVariableExpenses += amount;
-					}
-
-					if (date && !row.Fixkosten) {
-						scatterData.push({
-							x: date.getTime(),
-							y: Math.abs(amount),
-							label: row["Verwendungszweck"] || 'N/A'
-						});
-					}
-				}
-			});
-			
-			// console.log("Debug: Split complete. Income rows:", einnahmenData.length, "Expense rows:", ausgabenData.length);
-
-			//  Monatliche Aggregation der Daten.
-			filteredData.forEach(row => {
-				const rowDate = Utils.parseGermanDate(row.Buchungstag);
-				if (!rowDate) return;
-
-				const monthKey = rowDate.getFullYear() + '-' + String(rowDate.getMonth() + 1).padStart(2, '0'); 
-				uniqueMonths.add(monthKey); 
-
-				if (!monthlyData[monthKey]) {
-					monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
-				}
-
-				const amount = row.Betrag || 0;
-				if (amount > 0) {
-					monthlyData[monthKey].income += amount;
-				} else if (amount < 0) {
-					const absAmount = Math.abs(amount);
-					if (row.Fixkosten) monthlyData[monthKey].fixed += absAmount;
-					else monthlyData[monthKey].variable += absAmount;
-					
-					// Special Handling für User defined Lines (Custom Input).
-					if (customCategorySet.size > 0) {
-						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
-						if (customCategorySet.has(rowCategory)) {
-							if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
-							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
-							customMonthlyData[monthKey][rowCategory] += absAmount;
-						}
-					}
-				}
-			});
-			
-			const variableAusgabenData = ausgabenData.filter(row => !row.Fixkosten);
-			const fixeAusgabenData = ausgabenData.filter(row => !!row.Fixkosten);
-			const totalBalance = totalIncome + totalExpenses;
-
-			// Prepare Pie Chart Data
-			const categoryTotalsVariableExpenses = {};
-			variableAusgabenData.forEach(row => {
-				const category = row.Kategorie || L("category_placeholder");
-				const amount = Math.abs(row.Betrag);
-				if (!categoryTotalsVariableExpenses[category]) categoryTotalsVariableExpenses[category] = 0;
-				categoryTotalsVariableExpenses[category] += amount;
-			});
-
-			const sortedMonths = Object.keys(monthlyData).sort();
-			const lineChartLabels = sortedMonths.map(key => key);
-			const incomeData = sortedMonths.map(key => monthlyData[key].income);
-			const fixedData = sortedMonths.map(key => monthlyData[key].fixed);
-			const variableData = sortedMonths.map(key => monthlyData[key].variable);
-			const totalMonthlyExpenseData = sortedMonths.map(key => monthlyData[key].fixed + monthlyData[key].variable);
-			
-			let cumulativeExpense = 0;
-			const cumulativeExpenseData = sortedMonths.map(key => {
-				cumulativeExpense += monthlyData[key].fixed + monthlyData[key].variable;
-				return cumulativeExpense;
-			});
-			
-			const sortedCustomMonths = Array.from(uniqueMonths).sort();
-			const customLineChartDatasets = [];
-			(customCategories || []).forEach((category, index) => {
-				const data = sortedCustomMonths.map(month => {
-					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
+			if (_actLinMode === 'top') {
+				isCustomChart = true;
+				
+				// Wir müssen die vari Ausgaben zusammenfassen, um die "Top" zu finden
+				const variableExpenses = filteredData.filter(row =>
+					row.Betrag < 0 && !row.Fixkosten
+				);
+				const categoryTotals = {};
+				const placeholderCategory = L("category_placeholder").toLowerCase();
+				
+				variableExpenses.forEach(row => {
+					const category = (row.Kategorie || '').trim().toLowerCase();
+					if (!category || category === placeholderCategory) return; 
+					const amount = Math.abs(row.Betrag);
+					categoryTotals[category] = (categoryTotals[category] || 0) + amount;
 				});
-				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
-				customLineChartDatasets.push({
-					label: category, 
-					data: data,
-					borderColor: color,
-					backgroundColor: color.replace(')', ', 0.2)').replace('rgb', 'rgba'),
-					fill: false,
-					tension: 0.2
-				});
-			});
-			
-			// console.timeEnd("ProcessDataTimer");
+				
+				// Sortieren und Top Werte nehmen
+				customCategories = Object.entries(categoryTotals)
+					.sort(([, a], [, b]) => b - a) 
+					.slice(0, 5) 
+					.map(([category]) => category); 
+			}
 
-			return {
-				summary: { totalIncome, totalExpenses, totalBalance },
-				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
-				expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
-				overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
-				lineChart: { 
-					labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData
-				},
-				customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
-				scatterPlot: { data: scatterData }
-			};
+			// beide leer, nutze  den Standard-View.
+			return { customCategories, isCustomChart };
 		}
+
+		function _refreshPieSection(processedData, currentCurrency) {
+			if (DOM.visPieContentOverview.classList.contains('hidden')) return;
+
+			if (_activeOverviewTab === 'categories') {
+				DOM.overviewChartContainer.classList.add('hidden');
+				DOM.categoriesChartContainer.classList.remove('hidden');
+				
+				if (_myOverviewChartInstance) {
+					_myOverviewChartInstance.destroy();
+					_myOverviewChartInstance = null;
+				}
+				_updateCategoriesPieChart(processedData.expensePie, currentCurrency);
+			} else {
+				DOM.overviewChartContainer.classList.remove('hidden');
+				DOM.categoriesChartContainer.classList.add('hidden');
+				
+				if (_myChartInstance) {
+					_myChartInstance.destroy();
+					_myChartInstance = null;
+				}
+				_updateOverviewPieChart(processedData.overviewPie, currentCurrency);
+			}
+		}
+
+		function _refreshLineSection(processedData, currentCurrency, isCustomChart) {
+			if (DOM.visContentLines.classList.contains('hidden')) return;
+
+			if (isCustomChart) {
+				_updateLineChart(processedData.customLineChart, currentCurrency, true);
+			} else {
+				_updateLineChart(processedData.lineChart, currentCurrency, false); 
+			}
+		}
+
+		function _refreshScatterSection(processedData, currentCurrency) {
+			if (DOM.visContentScatter.classList.contains('hidden')) return;
+			_updateScatterPlot(processedData.scatterPlot, currentCurrency);
+		}
+
+		async function _refreshDetailTables() {
+			if (DOM.visContentDetails.classList.contains('hidden')) return;
+
+			if (_activeDetailTab === 'einnahmen') {
+				await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
+			} else if (_activeDetailTab === 'variable') {
+				await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
+			} else if (_activeDetailTab === 'fixe') {
+				await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
+			}
+		}
+
+		async function updateChart() {
+			const { tableData, currentCurrency } = Store.getState();
+			
+			if (tableData.length === 0) {
+				_handleEmptyData();
+				return;
+			}
+
+			let workingData = tableData;
+			if (DOM.dateShiftCheckbox && DOM.dateShiftCheckbox.checked) {
+				workingData = _shiftDates(tableData);
+			}
+
+			const filteredData = _getFilteredData(workingData);
+			const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
+			const processedData = _processData(filteredData, customCategories);
+			_cachedDetailData = processedData.details;
+
+			_updateSummaryUI(processedData.summary, currentCurrency);
+			_refreshPieSection(processedData, currentCurrency);
+			_refreshLineSection(processedData, currentCurrency, isCustomChart);
+			_refreshScatterSection(processedData, currentCurrency);
+			
+			await _refreshDetailTables();
+		} 
 		
 		function _updateSummaryUI(summary, currentCurrency) {
 			const { totalIncome, totalExpenses, totalBalance } = summary;
@@ -2467,125 +2473,150 @@
 				}
 			}
 		}
+		
+		function _processData(filteredData, customCategories = []) {
+			// Wir iterieren hier zweimal damits lesbar bleibt 
+			// console.time("ProcessDataTimer");
+			
+			const einnahmenData = [];
+			const ausgabenData = [];
+			let totalIncome = 0;
+			let totalExpenses = 0; 
+			let totalFixedExpenses = 0; 
+			let totalVariableExpenses = 0;
+			const monthlyData = {};
+			const scatterData = []; 
+			
+			const customMonthlyData = {}; 
+			const customCategorySet = new Set(customCategories || []);
+			const uniqueMonths = new Set(); 
+
+			//  Split Income/Expenses und Berechnung der Summen.
+			filteredData.forEach(row => {
+				const amount = row.Betrag || 0;
+			
+				const tableRow = { ...row }; 
+				const date = Utils.parseGermanDate(row.Buchungstag);
+
+				if (amount > 0) {
+					einnahmenData.push(tableRow);
+					totalIncome += amount;
+				} else if (amount < 0) {
+					ausgabenData.push(tableRow);
+					totalExpenses += amount;
+					if (row.Fixkosten) {
+						totalFixedExpenses += amount;
+					} else {
+						totalVariableExpenses += amount;
+					}
+
+					if (date && !row.Fixkosten) {
+						scatterData.push({
+							x: date.getTime(),
+							y: Math.abs(amount),
+							label: row["Verwendungszweck"] || 'N/A'
+						});
+					}
+				}
+			});
+			
+			// console.log("Debug: Split complete. Income rows:", einnahmenData.length, "Expense rows:", ausgabenData.length);
+
+			//  Monatliche Aggregation der Daten.
+			filteredData.forEach(row => {
+				const rowDate = Utils.parseGermanDate(row.Buchungstag);
+				if (!rowDate) return;
+
+				const monthKey = rowDate.getFullYear() + '-' + String(rowDate.getMonth() + 1).padStart(2, '0'); 
+				uniqueMonths.add(monthKey); 
+
+				if (!monthlyData[monthKey]) {
+					monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
+				}
+
+				const amount = row.Betrag || 0;
+				if (amount > 0) {
+					monthlyData[monthKey].income += amount;
+				} else if (amount < 0) {
+					const absAmount = Math.abs(amount);
+					if (row.Fixkosten) monthlyData[monthKey].fixed += absAmount;
+					else monthlyData[monthKey].variable += absAmount;
+					
+					// Special Handling für User defined Lines (Custom Input).
+					if (customCategorySet.size > 0) {
+						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
+						if (customCategorySet.has(rowCategory)) {
+							if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
+							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
+							customMonthlyData[monthKey][rowCategory] += absAmount;
+						}
+					}
+				}
+			});
+			
+			const variableAusgabenData = ausgabenData.filter(row => !row.Fixkosten);
+			const fixeAusgabenData = ausgabenData.filter(row => !!row.Fixkosten);
+			const totalBalance = totalIncome + totalExpenses;
+
+			// Prepare Pie Chart Data
+			const categoryTotalsVariableExpenses = {};
+			variableAusgabenData.forEach(row => {
+				const category = row.Kategorie || L("category_placeholder");
+				const amount = Math.abs(row.Betrag);
+				if (!categoryTotalsVariableExpenses[category]) categoryTotalsVariableExpenses[category] = 0;
+				categoryTotalsVariableExpenses[category] += amount;
+			});
+
+			const sortedMonths = Object.keys(monthlyData).sort();
+			const lineChartLabels = sortedMonths.map(key => key);
+			const incomeData = sortedMonths.map(key => monthlyData[key].income);
+			const fixedData = sortedMonths.map(key => monthlyData[key].fixed);
+			const variableData = sortedMonths.map(key => monthlyData[key].variable);
+			const totalMonthlyExpenseData = sortedMonths.map(key => monthlyData[key].fixed + monthlyData[key].variable);
+			
+			let cumulativeExpense = 0;
+			const cumulativeExpenseData = sortedMonths.map(key => {
+				cumulativeExpense += monthlyData[key].fixed + monthlyData[key].variable;
+				return cumulativeExpense;
+			});
+			
+			const sortedCustomMonths = Array.from(uniqueMonths).sort();
+			const customLineChartDatasets = [];
+			(customCategories || []).forEach((category, index) => {
+				const data = sortedCustomMonths.map(month => {
+					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
+				});
+				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+				customLineChartDatasets.push({
+					label: category, 
+					data: data,
+					borderColor: color,
+					backgroundColor: color.replace(')', ', 0.2)').replace('rgb', 'rgba'),
+					fill: false,
+					tension: 0.2
+				});
+			});
+			
+			// console.timeEnd("ProcessDataTimer");
+
+			return {
+				summary: { totalIncome, totalExpenses, totalBalance },
+				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
+				expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
+				overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
+				lineChart: { 
+					labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData
+				},
+				customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
+				scatterPlot: { data: scatterData }
+			};
+		}
 
 		function _handleEmptyData() {
 			_destroyCharts();
 			_destroyDetailTables();
 			DOM.summaryDisplay.classList.add('hidden');
 		}
-
-		function _getCustomChartConfig(filteredData) {
-			const rawInput = (DOM.customLinesInput.value || '').trim().toLowerCase();
-			let customCategories = [];
-			let isCustomChart = false;
-
-			if (rawInput === 'top4') {
-				isCustomChart = true;
-				const variableExpenses = filteredData.filter(row =>
-					row.Betrag < 0 && !row.Fixkosten
-				);
-				const categoryTotals = {};
-				const placeholderCategory = L("category_placeholder").toLowerCase();
-				
-				variableExpenses.forEach(row => {
-					const category = (row.Kategorie || '').trim().toLowerCase();
-					if (!category || category === placeholderCategory) return; 
-					const amount = Math.abs(row.Betrag);
-					categoryTotals[category] = (categoryTotals[category] || 0) + amount;
-				});
-				
-				customCategories = Object.entries(categoryTotals)
-					.sort(([, a], [, b]) => b - a) 
-					.slice(0, 4) 
-					.map(([category]) => category); 
-
-			} else if (rawInput !== '') {
-				isCustomChart = true;
-				customCategories = rawInput
-					.split(',')
-					.map(s => s.trim().toLowerCase())
-					.filter(s => s.length > 0);
-			}
-
-			return { customCategories, isCustomChart };
-		}
-
-		function _refreshPieSection(processedData, currentCurrency) {
-			if (DOM.visPieContentOverview.classList.contains('hidden')) return;
-
-			if (_activeOverviewTab === 'categories') {
-				DOM.overviewChartContainer.classList.add('hidden');
-				DOM.categoriesChartContainer.classList.remove('hidden');
-				
-				if (_myOverviewChartInstance) {
-					_myOverviewChartInstance.destroy();
-					_myOverviewChartInstance = null;
-				}
-				_updateCategoriesPieChart(processedData.expensePie, currentCurrency);
-			} else {
-				DOM.overviewChartContainer.classList.remove('hidden');
-				DOM.categoriesChartContainer.classList.add('hidden');
-				
-				if (_myChartInstance) {
-					_myChartInstance.destroy();
-					_myChartInstance = null;
-				}
-				_updateOverviewPieChart(processedData.overviewPie, currentCurrency);
-			}
-		}
-
-		function _refreshLineSection(processedData, currentCurrency, isCustomChart) {
-			if (DOM.visContentLines.classList.contains('hidden')) return;
-
-			if (isCustomChart) {
-				_updateLineChart(processedData.customLineChart, currentCurrency, true);
-			} else {
-				_updateLineChart(processedData.lineChart, currentCurrency, false); 
-			}
-		}
-
-		function _refreshScatterSection(processedData, currentCurrency) {
-			if (DOM.visContentScatter.classList.contains('hidden')) return;
-			_updateScatterPlot(processedData.scatterPlot, currentCurrency);
-		}
-
-		async function _refreshDetailTables() {
-			if (DOM.visContentDetails.classList.contains('hidden')) return;
-
-			if (_activeDetailTab === 'einnahmen') {
-				await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
-			} else if (_activeDetailTab === 'variable') {
-				await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
-			} else if (_activeDetailTab === 'fixe') {
-				await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
-			}
-		}
-
-		async function updateChart() {
-			const { tableData, currentCurrency } = Store.getState();
-			
-			if (tableData.length === 0) {
-				_handleEmptyData();
-				return;
-			}
-
-			let workingData = tableData;
-			if (DOM.dateShiftCheckbox && DOM.dateShiftCheckbox.checked) {
-				workingData = _shiftDates(tableData);
-			}
-
-			const filteredData = _getFilteredData(workingData);
-			const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
-			const processedData = _processData(filteredData, customCategories);
-			_cachedDetailData = processedData.details;
-
-			_updateSummaryUI(processedData.summary, currentCurrency);
-			_refreshPieSection(processedData, currentCurrency);
-			_refreshLineSection(processedData, currentCurrency, isCustomChart);
-			_refreshScatterSection(processedData, currentCurrency);
-			
-			await _refreshDetailTables();
-		} 
 
 		return {
 			init: function() {
@@ -2594,8 +2625,9 @@
 				DOM.dateStart.addEventListener('change', updateChart);
 				DOM.dateEnd.addEventListener('change', updateChart);
 				DOM.dateShiftCheckbox.addEventListener('change', updateChart);
-				DOM.customLinesInput.addEventListener('change', updateChart); 
-				
+				DOM.visLinesAllBtn.addEventListener('click', () => _handLinTog('all'));
+				DOM.visLinesTopBtn.addEventListener('click', () => _handLinTog('top'));
+
 				DOM.visPieTabOverview.addEventListener('click', () => showTab('overview'));
 				DOM.visTabDetails.addEventListener('click', () => showTab('details'));
 				DOM.visTabLines.addEventListener('click', () => showTab('lines'));
@@ -2632,7 +2664,10 @@
 				
 				DOM.dateStart.value = '';
 				DOM.dateEnd.value = '';
-				DOM.customLinesInput.value = '';
+				
+				// State Reset für die Line Buttons
+				_actLinMode = 'all';
+				_updLinTogBtns();
 			},
 			
 			update: updateChart,
