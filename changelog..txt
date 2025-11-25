@@ -10,5 +10,6 @@ Fix negative numbers enclosed in parentheses.
 Fix for update hidden DataTables issue.  
 Fix encoding for Excel, use BOM.
 Fix dont allow rule dupes
-New: "smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
+New "smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
+New csv Import now appends to existing Data if possible
 --------------------------
