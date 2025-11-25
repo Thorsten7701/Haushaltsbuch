@@ -1,6 +1,6 @@
 ## Haushaltsbuch 
 Household budget (see below for english version)
-
+Cloudless. Anti bloat. Portable. Intuitive. Your data stays on your disk.
 
 ## LiveDemo: https://thorsten7701.github.io/Haushaltsbuch/Haushaltsbuch.html
 play with it: dummy.json
@@ -12,12 +12,12 @@ Ich wollte diese Daten nicht unerreichbar irgendeinem Hersteller ausgeliefert se
 Als Lösung dafür startete ich "Haushaltsbuch". 
 
 Entwicklungsziele dabei sind: 
-  einfache Verständlichkeit,
-  Internationalisierung (trans.js),
- Kompatibilität mit libreoffice & excel,
- Im- und Exportierbarkeit der Daten (CSV und json), 
- sehr gute Auswertungsfunktionen,  
- komplett lokaler Betrieb ohne Installation sowie
+	einfache Verständlichkeit,
+	Internationalisierung (trans.js),
+	Kompatibilität mit libreoffice & excel,
+	Im- und Exportierbarkeit der Daten (CSV und json), 
+	sehr gute Auswertungsfunktionen,  
+	komplett lokaler Betrieb ohne Installation sowie
 Offener, strukturierter und dokumentierter Quellcode.
 
 Das war 2024 und mittlerweile hat das Projekt einen zufriedenstellenden Stand erreicht.
@@ -55,7 +55,8 @@ So I started "Haushaltsbuch". The development goals are:
 and complete local operation without installation.
 
 That was in 2024, and in the meantime, the project has reached a satisfactory state. This is therefore the first public version, Beta45. The license is the free GPLv3.
-The entire logic is implemented in JavaScript. Haushaltsbuch.html can therefore also be run from a USB stick.
+The entire logic is implemented in JavaScript.
+Haushaltsbuch.html can also be run from a USB stick.
 
 Enjoy! Thorsten
 
