@@ -28,16 +28,16 @@
 	<style>
 		:root {
 			--color-scheme: #10ABA2;
-			--color-scheme-hover: #069595; /* Darker version for hover */
+			--color-scheme-hover: #069595;
 		}
 		html {
 			font-size: 90%; 
 		}
-		/* Überschreiben einiger Tabulator Styles wg besserer Integration in Tailwind */
+		/* bessere Integration in Tailwind */
 		.tabulator {
 			border: none;
-			background-color: rgb(249 250 251); /* bg-gray-50 */
-			height: 100%; /* Wichtig für Tabellen in Tabs */
+			background-color: rgb(249 250 251); // bg-gray-50
+			height: 100%;
 		}
 		.tabulator .tabulator-header {
 			border-bottom: 1px solid rgb(229 231 235);
@@ -53,16 +53,16 @@
 			background-color: rgb(243 244 246) !important;
 		}
 		.tabulator .tabulator-cell {
-			padding: 4px 6px; /* Padding um ca. 30% reduziert */
-			font-size: 0.85rem; /* Etwas kleinere Schrift */
-			border-right: 1px solid rgb(229 231 235); /* Hellgraue Spalten Trennlinie */
+			padding: 4px 6px; 
+			font-size: 0.85rem;
+			border-right: 1px solid rgb(229 231 235); // Hellgraue Spalten Trennlinie
 		}
-		/* Fix für Tick/Cross Editor */
+		// Fix für Tick/Cross Editor
 		.tabulator-cell[tabulator-field="Fixkosten"] {
 			cursor: pointer;
 		}
 		
-		/* CSV Spaltenzuordnung */
+		// CSV Spaltenzuordnung
 		#mappingInstruction span {
 			margin: 0 4px;
 			padding: 2px 6px;
@@ -942,7 +942,7 @@
 		let _listeners = [];
 
 		function _emit(eventType = 'session_changed') {
-			const stateCopy = JSON.parse(JSON.stringify(_state));
+			const stateCopy = { ..._state };
 			_listeners.forEach(listener => listener(stateCopy, eventType));
 		}
 		
@@ -1093,7 +1093,7 @@
 				});
 				
 				if (!silent) {
-					_emit('data_changed');
+					_emit('session_changed');
 				}
 				return totalAffected;
 			},
@@ -1443,6 +1443,9 @@
 					columns: columns,
 					movableColumns: true,
 					resizableRows: true,
+					initialSort: [
+						{ column: "Buchungstag", dir: "desc" }
+					],
 					index: "id",
 					tableBuilt: function() {
 						resolve();
