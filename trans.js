@@ -104,6 +104,7 @@ const locales = {
 		"vis_chart_lines_empty_custom": "Keine Daten für gewählte Kategorien",
 		"vis_chart_lines_empty_custom_sub": "Bitte Eingabe prüfen oder Zeitraum ändern.",
 		"vis_lines_title": "Entwicklung im Zeitraum",
+		"vis_lines_other": "Sonstige",
 
 		// --- Table Column Headers  ---
 		"Buchungstag": "Buchungstag", 
@@ -236,7 +237,8 @@ const locales = {
 	"vis_nested_pie_expenses":"Categorized",
 		"vis_lines_all": "All",
 		"vis_lines_top": "Top",
-		"vis_lines_placeholder": "e.g. top4",
+		"vis_lines_placeholder": "e.g. top",
+		"vis_lines_other": "Other",
 		"vis_chart_lines_empty": "No data for line chart",
 		"vis_chart_lines_empty_sub": "Please check period or enter categories.",
 		"vis_chart_lines_empty_custom": "No data for selected categories",

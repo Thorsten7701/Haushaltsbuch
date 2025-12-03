@@ -2120,7 +2120,7 @@
 				// Sortieren und Top Werte nehmen
 				customCategories = Object.entries(categoryTotals)
 					.sort(([, a], [, b]) => b - a) 
-					.slice(0, 5) 
+					.slice(0, 4) 
 					.map(([category]) => category); 
 			}
 
@@ -2513,12 +2513,14 @@
 			
 			const customMonthlyData = {}; 
 			const customCategorySet = new Set(customCategories || []);
-			const uniqueMonths = new Set(); 
+
+			const KEY_OTHERS = '_others';
+			const uniqueMonths = new Set();
 
 			//  Split Income/Expenses und Berechnung der Summen.
 			filteredData.forEach(row => {
 				const amount = row.Betrag || 0;
-			
+	
 				const tableRow = { ...row }; 
 				const date = Utils.parseGermanDate(row.Buchungstag);
 
@@ -2543,9 +2545,8 @@
 					}
 				}
 			});
-			
 			// console.log("Debug: Split complete. Income rows:", einnahmenData.length, "Expense rows:", ausgabenData.length);
-
+		
 			//  Monatliche Aggregation der Daten.
 			filteredData.forEach(row => {
 				const rowDate = Utils.parseGermanDate(row.Buchungstag);
@@ -2566,13 +2567,19 @@
 					if (row.Fixkosten) monthlyData[monthKey].fixed += absAmount;
 					else monthlyData[monthKey].variable += absAmount;
 					
-					// Special Handling für User defined Lines (Custom Input).
+					// Behandle Top View.
 					if (customCategorySet.size > 0) {
 						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
+						if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
+
 						if (customCategorySet.has(rowCategory)) {
-							if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
+							// Ist eine Top Kategorie
 							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
 							customMonthlyData[monthKey][rowCategory] += absAmount;
+						} else if (!row.Fixkosten) {
+							// Ist weder Top Kategorie noch Fixkosten == "Sonstiges"
+							if (!customMonthlyData[monthKey][KEY_OTHERS]) customMonthlyData[monthKey][KEY_OTHERS] = 0;
+							customMonthlyData[monthKey][KEY_OTHERS] += absAmount;
 						}
 					}
 				}
@@ -2606,20 +2613,42 @@
 			
 			const sortedCustomMonths = Array.from(uniqueMonths).sort();
 			const customLineChartDatasets = [];
+			
+			// Top-Kategorien
 			(customCategories || []).forEach((category, index) => {
 				const data = sortedCustomMonths.map(month => {
 					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
 				});
+		
 				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
 				customLineChartDatasets.push({
 					label: category, 
 					data: data,
 					borderColor: color,
-					backgroundColor: color.replace(')', ', 0.2)').replace('rgb', 'rgba'),
+					backgroundColor: color, // Fallback
 					fill: false,
 					tension: 0.2
 				});
 			});
+
+			// Sonstige enthält var ausgaben die nicht schon im array sind
+			if (customCategorySet.size > 0) {
+				const othersData = sortedCustomMonths.map(month => {
+					return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) ? customMonthlyData[month][KEY_OTHERS] : 0;
+				});
+				
+				const othersColor = '#9966FF'; // Lila
+				const othersBg = 'rgba(153, 102, 255, 0.2)';
+
+				customLineChartDatasets.push({
+					label: L('vis_lines_other'), 
+					data: othersData,
+					borderColor: othersColor,
+					backgroundColor: othersBg,
+					fill: false,
+					tension: 0.2
+				});
+			}
 			
 			// console.timeEnd("ProcessDataTimer");
 
@@ -2635,7 +2664,7 @@
 				scatterPlot: { data: scatterData }
 			};
 		}
-
+		
 		function _handleEmptyData() {
 			_destroyCharts();
 			_destroyDetailTables();
