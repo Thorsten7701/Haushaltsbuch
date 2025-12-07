@@ -41,7 +41,7 @@
 		}
 		.tabulator .tabulator-header {
 			border-bottom: 1px solid rgb(229 231 235);
-			background-color: rgb(243 244 246);
+			background-color: rgb(241 243 245);
 			font-size: 0.8rem;
 			font-weight: 500;
 		}
@@ -50,7 +50,7 @@
 			background-color: white;
 		}
 		.tabulator .tabulator-row:hover {
-			background-color: rgb(243 244 246) !important;
+			background-color: rgb(241 243 245) !important;
 		}
 		.tabulator .tabulator-cell {
 			padding: 4px 6px; 
@@ -453,7 +453,7 @@
 						<p class="text-sm">Bitte Zeitraum prüfen.</p>
 					</div>
 					
-					<div class="relative w-full h-[54vh]">
+					<div class="relative w-full h-[65vh]">
 						<canvas id="lineChartCanvas"></canvas>
 					</div>
 				</div>
@@ -2108,11 +2108,10 @@
 					row.Betrag < 0 && !row.Fixkosten
 				);
 				const categoryTotals = {};
-				const placeholderCategory = L("category_placeholder").toLowerCase();
 				
 				variableExpenses.forEach(row => {
 					const category = (row.Kategorie || '').trim().toLowerCase();
-					if (!category || category === placeholderCategory) return; 
+					if (!category) return; 
 					const amount = Math.abs(row.Betrag);
 					categoryTotals[category] = (categoryTotals[category] || 0) + amount;
 				});
@@ -2120,7 +2119,7 @@
 				// Sortieren und Top Werte nehmen
 				customCategories = Object.entries(categoryTotals)
 					.sort(([, a], [, b]) => b - a) 
-					.slice(0, 4) 
+					.slice(0, 5) 
 					.map(([category]) => category); 
 			}
 
@@ -2516,6 +2515,8 @@
 
 			const KEY_OTHERS = '_others';
 			const uniqueMonths = new Set();
+			
+			const debugOthersMap = {}; 
 
 			//  Split Income/Expenses und Berechnung der Summen.
 			filteredData.forEach(row => {
@@ -2576,10 +2577,14 @@
 							// Ist eine Top Kategorie
 							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
 							customMonthlyData[monthKey][rowCategory] += absAmount;
-						} else if (!row.Fixkosten) {
+						} else if (!row.Fixkosten && rowCategory !== "") {
 							// Ist weder Top Kategorie noch Fixkosten == "Sonstiges"
 							if (!customMonthlyData[monthKey][KEY_OTHERS]) customMonthlyData[monthKey][KEY_OTHERS] = 0;
 							customMonthlyData[monthKey][KEY_OTHERS] += absAmount;
+
+							// debug other kategorien 
+							if (!debugOthersMap[rowCategory]) debugOthersMap[rowCategory] = 0;
+							debugOthersMap[rowCategory] += absAmount;
 						}
 					}
 				}
@@ -2614,7 +2619,7 @@
 			const sortedCustomMonths = Array.from(uniqueMonths).sort();
 			const customLineChartDatasets = [];
 			
-			// Top-Kategorien
+			// Top Kategorien
 			(customCategories || []).forEach((category, index) => {
 				const data = sortedCustomMonths.map(month => {
 					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
@@ -2637,7 +2642,7 @@
 					return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) ? customMonthlyData[month][KEY_OTHERS] : 0;
 				});
 				
-				const othersColor = '#9966FF'; // Lila
+				const othersColor = '#CC60FF'; // Lila
 				const othersBg = 'rgba(153, 102, 255, 0.2)';
 
 				customLineChartDatasets.push({
@@ -2652,6 +2657,12 @@
 			
 			// console.timeEnd("ProcessDataTimer");
 
+			if (customCategorySet.size > 0 && Object.keys(debugOthersMap).length > 0) {
+				console.groupCollapsed(" DEBUG: Sonstige");
+				console.table(debugOthersMap);
+				console.groupEnd();
+			}
+
 			return {
 				summary: { totalIncome, totalExpenses, totalBalance },
 				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
@@ -2664,6 +2675,7 @@
 				scatterPlot: { data: scatterData }
 			};
 		}
+
 		
 		function _handleEmptyData() {
 			_destroyCharts();
