@@ -952,6 +952,8 @@
 			const term = rule.search.toLowerCase();
 			
 			dataSet.forEach(row => {
+				if (row.manual) return;
+
 				const purposeMatch = (row["Verwendungszweck"] || '').toLowerCase().includes(term);
 				
 				if (purposeMatch) {
@@ -995,6 +997,11 @@
 					console.log(`Debug: Updating row ${rowId}, field: ${field} ->`, newValue);
 
 					updatedRow[field] = newValue;
+					
+					// Manuelle edits flaggen damit wir die nich überschreiben.
+					if (field === 'Kategorie') {
+						updatedRow.manual = true;
+					}
 					
 					updatedRow.Fixkosten = updatedRow.Fixkosten ? 1 : 0; 
 					const dateObj = Utils.parseGermanDate(updatedRow.Buchungstag);
@@ -1091,10 +1098,12 @@
 			applyAllRules: function(silent = false) {
 				let totalAffected = 0;
 				
-				// Kategorien resetten
+				// Kategorien nur resetten wenn sie nicht manuell editiert wurden
 				_state.tableData.forEach(row => {
-					row.Kategorie = "";
-					row.Fixkosten = 0;
+					if (!row.manual) {
+						row.Kategorie = "";
+						row.Fixkosten = 0;
+					}
 				});
 
 				_state.savedRules.forEach(rule => {
