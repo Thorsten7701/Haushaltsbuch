@@ -71,8 +71,7 @@ Later, there will be an Instagram or similar account for the tool. Thank you! ar
 
 The JavaScript logic is organized into the following modules:
 
-DOM: Holds references to all important elements.
-Utils: A collection of helper functions (e.g date parsing, modals, status messages).
+DOM: Holds references to all important elements and some helper functions
 Store: States (transaction data, rules) It uses a publish-subscribe logik.
 MainController: Controls page visibility.	
 ImportModule: CSV and JSON file imports. 
@@ -81,7 +80,7 @@ VisualizeModule: Al charts and detailed tables on the visualization page.
 Internationalization: Translations and Currency settings support via trans.js ( data-i18n attr).
 IconLoader.js: A lightweight, zero-dependency solution for rendering eg FontAwesome SVG icons locally. 
 
-All functions are JSDoc annotated.
+Most functions are JSDoc annotated.
 
 Libraries:
 

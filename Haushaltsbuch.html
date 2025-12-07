@@ -1021,13 +1021,22 @@
 			},
 
 			loadState: function(data, rules, currency) {
+				// daten + regeln sanitizen
 				_state.tableData = (data || []).map(row => ({ 
 					...row, 
 					Betrag: Utils.parseGermanNumber(row.Betrag),
-					Fixkosten: row.Fixkosten ? 1 : 0 
+					Fixkosten: row.Fixkosten ? 1 : 0,
+					// kategorie in den daten lowercasen
+					Kategorie: (row.Kategorie || "").toLowerCase()
 				}));
 				
-				_state.savedRules = (rules || []).map(rule => ({ ...rule, isFixkosten: rule.isFixkosten || false }));
+				_state.savedRules = (rules || []).map(rule => ({ 
+					...rule, 
+					search: (rule.search || "").toLowerCase(),
+					category: (rule.category || "").toLowerCase(),
+					isFixkosten: rule.isFixkosten || false 
+				}));
+				
 				_state.currentCurrency = currency || DOM.DEFAULT_CURRENCY;
 				
 				DOM.delimiterInput.value = ";"; 
@@ -1231,8 +1240,9 @@
 					}
 				}
 				
-				// Kate und Fixk Spalten aus Import übernehmen  
-				newRow['Kategorie'] = csvCatHeader ? (row[csvCatHeader] || "") : "";                    
+				// Kate und Fixk Spalten aus Import übernehmen 
+				const rawCat = csvCatHeader ? (row[csvCatHeader] || "") : "";
+				newRow['Kategorie'] = rawCat.toLowerCase();
 				
 				if (csvFixHeader) {
 					const rawFix = String(row[csvFixHeader] || '').toLowerCase().trim();
@@ -1402,8 +1412,10 @@
 					},
 					cellEdited: function(cell) {
 						const id = cell.getRow().getData().id;
-						const newValue = cell.getValue();
-						Store.updateTableDataField(id, "Kategorie", newValue);
+						const rawVal = cell.getValue() || "";
+						const lowVal = rawVal.toLowerCase();
+						// console.log("debug: cat changed to " + lowVal);
+						Store.updateTableDataField(id, "Kategorie", lowVal);
 					}
 				},
 				"Fixkosten": { title: L("Fixkosten"), sorter: "boolean", hozAlign: "center", width: 60, 
@@ -1550,8 +1562,8 @@
 		}
 	
 		async function _handleSaveRule() {
-			const search = DOM.ruleSearch.value.trim();
-			const cat = DOM.ruleCategory.value.trim(); 
+			const search = DOM.ruleSearch.value.trim().toLowerCase();
+			const cat = DOM.ruleCategory.value.trim().toLowerCase(); 
 			const isFixkosten = DOM.ruleFixkostenCheckbox.checked;
 			
 			if (!search || !cat) {

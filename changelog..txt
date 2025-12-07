@@ -2,12 +2,10 @@
 
 B45
 Store: Use data caching to improve performance.
-Visuals: Added "top4" logic and custom category filtering
-Visuals: Income, Variable, and Fixed expenses details view.
-Fix: table data syncing issues. use local cellEdited callbacks
+Visuals: Added "top" logic + Income, Variable, and Fixed expenses details view.
+Fix: table data import + syncing issues. use local cellEdited callbacks
 New Apply and delete all categorization rules.
 Fix negative numbers enclosed in parentheses. 
-Fix for update hidden DataTables issue.  
 Fix encoding for Excel, use BOM.
 Fix dont allow rule dupes
 New "smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
