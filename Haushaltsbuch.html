@@ -1955,12 +1955,18 @@
 				_einnahmenTableInstance = null;
 			}
 			_einnahmenTableReadyPromise = null;
+			
+			// console.log("Debug: Init Einnahmen Table with " + data.length + " rows."); // Mal checken ob Daten ankommen
+
 			_einnahmenTableReadyPromise = new Promise((resolve) => {
 				_einnahmenTableInstance = new Tabulator(DOM.einnahmenTableEl, {
 					data: data,
 					layout: "fitColumns",
 					height: "100%",
 					placeholder: L("vis_placeholder_no_income"),
+					initialSort: [
+						{ column: "Buchungstag", dir: "desc" }
+					],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea" },
@@ -1988,6 +1994,9 @@
 					layout: "fitColumns",
 					height: "100%", 
 					placeholder: L("vis_placeholder_no_variable"),
+					initialSort: [
+						{ column: "Buchungstag", dir: "desc" }
+					],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
@@ -2022,6 +2031,9 @@
 					layout: "fitColumns",
 					height: "100%",
 					placeholder: L("vis_placeholder_no_fixed"),
+					initialSort: [
+						{ column: "Buchungstag", dir: "desc" }
+					],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 120 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
