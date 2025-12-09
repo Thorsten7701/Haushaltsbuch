@@ -2377,7 +2377,7 @@
 				datasets = lineChartData.datasets;
 				title = 'Kategorien'; 
 			} else {
-				const { labels: lineChartLabels, incomeData, fixedData, variableData, totalMonthlyExpenseData } = lineChartData;
+				const { labels: lineChartLabels, incomeData, fixedData, variableData, totalMonthlyExpenseData, balDat } = lineChartData;
 				labels = lineChartLabels;
 				datasets = [
 					{ label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
@@ -2391,6 +2391,19 @@
 						fill: false,
 						tension: 0.1,
 						yAxisID: 'y' 
+					},
+					// Saldo zeichnen
+					
+					{
+						label: L('vis_summary_balance'),
+						data: balDat,
+						borderColor: '#37A151', 
+						backgroundColor: 'rgba(55, 65, 81, 0.1)',
+						fill: false,
+						borderWidth: 2,
+						//borderDash: [5, 5], // Gestrichelt damits distinct aussieht
+						tension: 0.1,
+						yAxisID: 'y'
 					}
 				];
 			}
@@ -2643,6 +2656,14 @@
 			const variableData = sortedMonths.map(key => monthlyData[key].variable);
 			const totalMonthlyExpenseData = sortedMonths.map(key => monthlyData[key].fixed + monthlyData[key].variable);
 			
+			// monatlicher Saldo Income - Ausgaben
+			const balDat = sortedMonths.map(key => {
+				const inc = monthlyData[key].income;
+				const exp = monthlyData[key].fixed + monthlyData[key].variable;
+				return inc - exp;
+			});
+			// console.log("Debug: Balance array calculated", balDat);
+
 			let cumulativeExpense = 0;
 			const cumulativeExpenseData = sortedMonths.map(key => {
 				cumulativeExpense += monthlyData[key].fixed + monthlyData[key].variable;
@@ -2702,7 +2723,7 @@
 				expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
 				overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
 				lineChart: { 
-					labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData
+					labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData, balDat
 				},
 				customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
 				scatterPlot: { data: scatterData }
