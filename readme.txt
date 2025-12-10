@@ -3,7 +3,8 @@ Household budget (see below for english version)
 Cloudless. Anti bloat. Portable. Intuitive. Your data stays on your disk.
 
 ## LiveDemo: https://thorsten7701.github.io/Haushaltsbuch/Haushaltsbuch.html
-play with it: dummy.json and see the ![wiki]https://github.com/Thorsten7701/Haushaltsbuch/wiki!
+play with it: 	dummy.json 
+or see the wiki: https://github.com/Thorsten7701/Haushaltsbuch/wiki
 
 Bei meiner Suche nach einer Haushaltsbuch App musste ich enttäuscht feststellen, dass keine meinen Anforderungen entsprach.
 Teils waren sie mehrere hundert Megabyte groß und die meisten unterstützten keinen Datenexport sondern nur eine proprietäre Speicherdatei. Ein paar packten die Daten gleich ganz in irgendeine anonyme Cloud.
@@ -16,7 +17,8 @@ Entwicklungsziele dabei sind:
 	Internationalisierung (trans.js),
 	Kompatibilität mit libreoffice & excel,
 	Im- und Exportierbarkeit der Daten (CSV und json), 
-	sehr gute Auswertungsfunktionen,  
+	sehr gute Auswertungsfunktionen, 
+	keine Abhängigkeiten zu NodeJs oder Electron Bloatware,    
 	komplett lokaler Betrieb ohne Installation sowie
 Offener, strukturierter und dokumentierter Quellcode.
 
@@ -51,6 +53,7 @@ So I started "Haushaltsbuch". The development goals are:
  internationalization (trans.js), 
  compatibility with LibreOffice & Excel, 
  import and exportability of data (CSV and JSON), 
+ independent from NodeJs or Electron bloatware. 
  good analysis functions, 
 and complete local operation without installation.
 
