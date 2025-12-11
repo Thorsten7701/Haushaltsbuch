@@ -2373,17 +2373,53 @@
 			let title = L('vis_tab_lines');
 
 			if (isCustom) {
+				// Custom view fuer Top Kategorien
 				labels = lineChartData.labels;
 				datasets = lineChartData.datasets;
 				title = 'Kategorien'; 
 			} else {
-				const { labels: lineChartLabels, incomeData, fixedData, variableData, totalMonthlyExpenseData, balDat } = lineChartData;
+				// hole Daten aus lineChartData.
+				const { 
+					labels: lineChartLabels, 
+					incomeData, 
+					fixedData, 
+					varData,               
+					totalMonthlyExpenseData, 
+					balanceData   
+				} = lineChartData;
+				
+				// console.log("Debug: Destructuring complete, varData length: ", varData?.length);
+
 				labels = lineChartLabels;
 				datasets = [
-					{ label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
-					{ label: L('vis_nested_variable'), data: variableData, borderColor: DOM.CHART_COLORS[0], backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
-					{ label: L('vis_nested_fixed'), data: fixedData, borderColor: DOM.CHART_COLORS[4], backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
-					{ 
+					{ // Einnahmen
+						label: L('vis_summary_income'), 
+						data: incomeData, 
+						borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, 
+						backgroundColor: 'rgba(16, 185, 129, 0.2)', 
+						fill: true, 
+						tension: 0.2, 
+						yAxisID: 'y' 
+					},
+					{ // variable Ausgaben
+						label: L('vis_nested_variable'), 
+						data: varData,
+						borderColor: DOM.CHART_COLORS[0], 
+						backgroundColor: 'rgba(255, 99, 132, 0.2)', 
+						fill: true, 
+						tension: 0.2, 
+						yAxisID: 'y' 
+					},
+					{ // fixe
+						label: L('vis_nested_fixed'), 
+						data: fixedData, 
+						borderColor: DOM.CHART_COLORS[4], 
+						backgroundColor: 'rgba(153, 102, 255, 0.2)', 
+						fill: true, 
+						tension: 0.2, 
+						yAxisID: 'y' 
+					},
+					{ // beide Ausgaben
 						label: L('vis_summary_expenses'),
 						data: totalMonthlyExpenseData,
 						borderColor: '#F59E0B', 
@@ -2392,11 +2428,10 @@
 						tension: 0.1,
 						yAxisID: 'y' 
 					},
-					// Saldo zeichnen
-					
+					// Saldo Linienchart
 					{
 						label: L('vis_summary_balance'),
-						data: balDat,
+						data: balanceData, // Und hier balanceData
 						borderColor: '#37A151', 
 						backgroundColor: 'rgba(55, 65, 81, 0.1)',
 						fill: false,
@@ -2408,19 +2443,23 @@
 				];
 			}
 
+			// keine Daten - Fehler ausgeben
 			if (labels.length === 0 || (isCustom && datasets.length === 0)) {
 				DOM.chartEmptyStateLines.classList.remove('hidden');
 				DOM.lineChartCanvas.classList.add('hidden');
+				
 				DOM.chartEmptyStateLines.querySelector('p').textContent = isCustom ? 'Keine Daten für gewählte Kategorien' : L('vis_chart_lines_empty');
 				DOM.chartEmptyStateLines.querySelector('.text-sm').textContent = isCustom ? 'Bitte Eingabe prüfen oder Zeitraum ändern.' : 'Bitte Zeitraum prüfen.';
 
 				if (_myLineChartInstance) _myLineChartInstance.destroy();
 				_myLineChartInstance = null;
 			} else {
+				// Chart area anzeigen
 				DOM.chartEmptyStateLines.classList.add('hidden');
 				DOM.lineChartCanvas.classList.remove('hidden');
 
 				if (_myLineChartInstance) { 
+					// Update existing Chart
 					_myLineChartInstance.data.labels = labels;
 					_myLineChartInstance.data.datasets = datasets;
 					_myLineChartInstance.options.plugins.title.text = title;
@@ -2428,6 +2467,7 @@
 					_myLineChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
 					_myLineChartInstance.update();
 				} else { 
+					// New Chart erstellen
 					const ctxLine = DOM.lineChartCanvas.getContext('2d');
 					_myLineChartInstance = new Chart(ctxLine, {
 						type: 'line',
@@ -2649,31 +2689,14 @@
 				categoryTotalsVariableExpenses[category] += amount;
 			});
 
+			// Standard View erstellen
 			const sortedMonths = Object.keys(monthlyData).sort();
-			const lineChartLabels = sortedMonths.map(key => key);
-			const incomeData = sortedMonths.map(key => monthlyData[key].income);
-			const fixedData = sortedMonths.map(key => monthlyData[key].fixed);
-			const variableData = sortedMonths.map(key => monthlyData[key].variable);
-			const totalMonthlyExpenseData = sortedMonths.map(key => monthlyData[key].fixed + monthlyData[key].variable);
-			
-			// monatlicher Saldo Income - Ausgaben
-			const balDat = sortedMonths.map(key => {
-				const inc = monthlyData[key].income;
-				const exp = monthlyData[key].fixed + monthlyData[key].variable;
-				return inc - exp;
-			});
-			// console.log("Debug: Balance array calculated", balDat);
-
-			let cumulativeExpense = 0;
-			const cumulativeExpenseData = sortedMonths.map(key => {
-				cumulativeExpense += monthlyData[key].fixed + monthlyData[key].variable;
-				return cumulativeExpense;
-			});
+			const lineChartData = _buildStdLineData(sortedMonths, monthlyData);
 			
 			const sortedCustomMonths = Array.from(uniqueMonths).sort();
 			const customLineChartDatasets = [];
 			
-			// Top Kategorien
+			// Top Kategorien View erstellen
 			(customCategories || []).forEach((category, index) => {
 				const data = sortedCustomMonths.map(month => {
 					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
@@ -2690,7 +2713,7 @@
 				});
 			});
 
-			// Sonstige enthält var ausgaben die nicht schon im array sind
+			// Sonstige enthält vari ausgaben die nicht schon im array sind
 			if (customCategorySet.size > 0) {
 				const othersData = sortedCustomMonths.map(month => {
 					return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) ? customMonthlyData[month][KEY_OTHERS] : 0;
@@ -2722,11 +2745,48 @@
 				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
 				expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
 				overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
-				lineChart: { 
-					labels: lineChartLabels, incomeData, fixedData, variableData, cumulativeExpenseData, totalMonthlyExpenseData, balDat
-				},
+				lineChart: lineChartData,
 				customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
 				scatterPlot: { data: scatterData }
+			};
+		}
+		
+		/**
+		 * erstellt Arrays für das Standard Liniendiagramm.
+		 */
+		function _buildStdLineData(sortedMonths, monthlyData) {
+			// Wir mappen die Basis Daten Arrays.
+			const incomeData = sortedMonths.map(k => monthlyData[k].income);
+			const fixedData = sortedMonths.map(k => monthlyData[k].fixed);
+			
+			const varData = sortedMonths.map(k => monthlyData[k].variable);
+			
+			// Gesamtausgaben pro Monat (Fix + Variabel).
+			const totalMonthlyExpenseData = sortedMonths.map(k => monthlyData[k].fixed + monthlyData[k].variable);
+			
+			// Saldo Kurve: Einnahmen minus Ausgaben.
+			const balanceData = sortedMonths.map(k => {
+				const income = monthlyData[k].income;
+				const expense = monthlyData[k].fixed + monthlyData[k].variable;
+				return income - expense;
+			});
+
+			// Kumulierte Ausgaben über die Zeit.
+			let cumExpense = 0;
+			const cumExpenseData = sortedMonths.map(k => {
+				cumExpense += monthlyData[k].fixed + monthlyData[k].variable;
+				return cumExpense;
+			});
+			
+			// var zu Key maps für Chart.js
+			return { 
+				labels: sortedMonths, 
+				incomeData: incomeData, 
+				fixedData: fixedData, 
+				varData: varData, 
+				cumulativeExpenseData: cumExpenseData, 
+				totalMonthlyExpenseData: totalMonthlyExpenseData, 
+				balanceData: balanceData 
 			};
 		}
 
