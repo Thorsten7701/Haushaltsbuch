@@ -2159,6 +2159,314 @@
 			// beide leer, nutze  den Standard-View.
 			return { customCategories, isCustomChart };
 		}
+		
+		/**
+		 * Aggregiert die Rohdaten und berechnet Summen.
+		 */
+		function _aggregateData(filteredData, customCategories = []) {
+	
+			if (!filteredData) return null;
+
+			const einnahmenData = [];
+			const ausgabenData = [];
+			const scatterData = [];
+			
+			let totalIncome = 0;
+			let totalExpenses = 0;
+			let totalFixedExpenses = 0;
+			let totalVariableExpenses = 0;
+			
+			const monthlyData = {};
+			const customMonthlyData = {};
+			const uniqueMonths = new Set();
+			
+			// Helferset für schnellen Lookup
+			const customCategorySet = new Set(customCategories || []);
+			const KEY_OTHERS = '_others';
+			// const debugOthersMap = {}; // // console.log("Debug map init");
+
+			// Iteriere über die gefilterten Daten
+			filteredData.forEach(row => {
+				const amount = row.Betrag || 0;
+				const tableRow = { ...row }; // Copy row
+				const date = Utils.parseGermanDate(row.Buchungstag);
+				
+				// Split Income -Exp.
+				if (amount > 0) {
+					einnahmenData.push(tableRow);
+					totalIncome += amount;
+				} else if (amount < 0) {
+					ausgabenData.push(tableRow);
+					totalExpenses += amount;
+					
+					if (row.Fixkosten) {
+						totalFixedExpenses += amount;
+					} else {
+						totalVariableExpenses += amount;
+					}
+
+					// Scatter braucht nur Ausgaben und valides Datum
+					if (date && !row.Fixkosten) {
+						scatterData.push({
+							x: date.getTime(),
+							y: Math.abs(amount),
+							label: row["Verwendungszweck"] || L('tooltip_unknown')
+						});
+					}
+				}
+				
+				// Monthly Aggre Logic
+				if (!date) return; // Skip invalid dates
+				
+				const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+				uniqueMonths.add(monthKey);
+
+				if (!monthlyData[monthKey]) {
+					monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
+				}
+				
+				if (amount > 0) {
+					monthlyData[monthKey].income += amount;
+				} else if (amount < 0) {
+					const absAmount = Math.abs(amount);
+					if (row.Fixkosten) {
+						monthlyData[monthKey].fixed += absAmount;
+					} else {
+						monthlyData[monthKey].variable += absAmount;
+					}
+					
+					// Handl Top Kategorien
+					if (customCategorySet.size > 0) {
+						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
+						if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
+
+						if (customCategorySet.has(rowCategory)) {
+							// Jay; Top Kategorie
+							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
+							customMonthlyData[monthKey][rowCategory] += absAmount;
+						} else if (!row.Fixkosten && rowCategory !== "") {
+							// Sonstige
+							if (!customMonthlyData[monthKey][KEY_OTHERS]) customMonthlyData[monthKey][KEY_OTHERS] = 0;
+							customMonthlyData[monthKey][KEY_OTHERS] += absAmount;
+						}
+					}
+				}
+			});
+
+			const variableAusgabenData = ausgabenData.filter(row => !row.Fixkosten);
+			const fixeAusgabenData = ausgabenData.filter(row => !!row.Fixkosten);
+			const totalBalance = totalIncome + totalExpenses;
+
+			return {
+				einnahmenData,
+				variableAusgabenData,
+				fixeAusgabenData,
+				scatterData,
+				monthlyData,
+				customMonthlyData,
+				uniqueMonths,
+				totals: {
+					totalIncome,
+					totalExpenses,
+					totalFixedExpenses,
+					totalVariableExpenses,
+					totalBalance
+				}
+			};
+		}
+
+		/**
+		 * Bereitet die Daten für die Kreisdiagramme vor.
+		 */
+		function _preparePieData(variableAusgabenData, totals) {
+			if (!variableAusgabenData) return { expensePie: {}, overviewPie: {} };
+
+			const categoryTotalsVariableExpenses = {};
+			
+			variableAusgabenData.forEach(row => {
+				const category = row.Kategorie || L("category_placeholder");
+				const amount = Math.abs(row.Betrag);
+				
+				if (!categoryTotalsVariableExpenses[category]) {
+					categoryTotalsVariableExpenses[category] = 0;
+				}
+				categoryTotalsVariableExpenses[category] += amount;
+			});
+
+			return {
+				expensePie: { 
+					categoryTotals: categoryTotalsVariableExpenses 
+				},
+				overviewPie: { 
+					totalIncome: totals.totalIncome, 
+					totalFixedExpenses: totals.totalFixedExpenses, 
+					totalVariableExpenses: totals.totalVariableExpenses 
+				}
+			};
+		}
+		
+		/**
+		 * Baut die Arrays für das Standard Liniendiagramm.
+		 */
+		function _buildStdLineData(sortedMonths, monthlyData) {
+			// Init arrays
+			const incomeData = [];
+			const fixedData = [];
+			const varData = [];
+			const totalMonthlyExpenseData = [];
+			const balanceData = [];
+			const cumExpenseData = [];
+			
+			let cumExpense = 0;
+
+			sortedMonths.forEach(k => {
+				const mData = monthlyData[k] || { income: 0, fixed: 0, variable: 0 };
+				
+				const inc = mData.income;
+				const fix = mData.fixed;
+				const vari = mData.variable;
+				
+				const totalExp = fix + vari;
+				const currentBalance = inc - totalExp;
+				
+				cumExpense += totalExp;
+
+				// Push to arrays
+				incomeData.push(inc);
+				fixedData.push(fix);
+				varData.push(vari);
+				totalMonthlyExpenseData.push(totalExp);
+				balanceData.push(currentBalance);
+				cumExpenseData.push(cumExpense);
+			});
+
+			// Return package für Chart.js
+			return { 
+				labels: sortedMonths, 
+				incomeData, 
+				fixedData, 
+				varData, 
+				cumulativeExpenseData: cumExpenseData, 
+				totalMonthlyExpenseData,
+				balanceData 
+			};
+		}
+
+		/**
+		 * Baut die Datasets für die Liniendiagrammses zusammen.
+		 */
+		function _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths) {
+			const sortedMonths = Array.from(uniqueMonths).sort();
+			
+			// Standard Line Data bauen
+			const lineChartData = _buildStdLineData(sortedMonths, monthlyData);
+			
+			// Custom Line Data bauen
+			const customLineChartDatasets = [];
+			const KEY_OTHERS = '_others';
+			const customCategorySet = new Set(customCategories || []);
+
+			if (customCategories && customCategories.length > 0) {
+				customCategories.forEach((category, index) => {
+					const data = sortedMonths.map(month => {
+						return (customMonthlyData[month] && customMonthlyData[month][category]) 
+							? customMonthlyData[month][category] 
+							: 0;
+					});
+			
+					const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+					
+					customLineChartDatasets.push({
+						label: category, 
+						data: data,
+						borderColor: color,
+						backgroundColor: color, 
+						fill: false,
+						tension: 0.2
+					});
+				});
+
+				// Sonstige
+				if (customCategorySet.size > 0) {
+					const othersData = sortedMonths.map(month => {
+						return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) 
+							? customMonthlyData[month][KEY_OTHERS] 
+							: 0;
+					});
+					
+					const othersColor = '#CC60FF'; // lila
+					const othersBg = 'rgba(153, 102, 255, 0.2)';
+
+					customLineChartDatasets.push({
+						label: L('vis_lines_other'), 
+						data: othersData,
+						borderColor: othersColor,
+						backgroundColor: othersBg,
+						fill: false,
+						tension: 0.2
+					});
+				}
+			}
+
+			return {
+				lineChart: lineChartData,
+				customLineChart: { 
+					labels: sortedMonths, 
+					datasets: customLineChartDatasets 
+				}
+			};
+		}
+
+		/**
+		 * Verarbeitet keine Daten mehr sondern koordiniert sub routinen. 
+		 */
+		function _processData(filteredData, customCategories = []) {
+			// console.time("ProcessDataTimer");
+			
+			const aggResult = _aggregateData(filteredData, customCategories);
+			
+			if (!aggResult) {
+				return { summary: {}, details: {}, expensePie: {}, overviewPie: {}, lineChart: {}, customLineChart: {}, scatterPlot: {} };
+			}
+
+			const { 
+				einnahmenData, 
+				variableAusgabenData, 
+				fixeAusgabenData, 
+				scatterData, 
+				monthlyData, 
+				customMonthlyData, 
+				uniqueMonths, 
+				totals 
+			} = aggResult;
+
+			// Pie Charts
+			const pieData = _preparePieData(variableAusgabenData, totals);
+
+			//Line Charts
+			const lineData = _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths);
+			
+			// console.timeEnd("ProcessDataTimer");
+
+			// Zusammenbaun
+			return {
+				summary: { 
+					totalIncome: totals.totalIncome, 
+					totalExpenses: totals.totalExpenses, 
+					totalBalance: totals.totalBalance 
+				},
+				details: { 
+					einnahmenData, 
+					variableAusgabenData, 
+					fixeAusgabenData 
+				},
+				expensePie: pieData.expensePie,
+				overviewPie: pieData.overviewPie,
+				lineChart: lineData.lineChart,
+				customLineChart: lineData.customLineChart,
+				scatterPlot: { data: scatterData }
+			};
+		}
 
 		function _refreshPieSection(processedData, currentCurrency) {
 			if (DOM.visPieContentOverview.classList.contains('hidden')) return;
@@ -2226,7 +2534,9 @@
 
 			const filteredData = _getFilteredData(workingData);
 			const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
+			
 			const processedData = _processData(filteredData, customCategories);
+			
 			_cachedDetailData = processedData.details;
 
 			_updateSummaryUI(processedData.summary, currentCurrency);
@@ -2378,7 +2688,7 @@
 				datasets = lineChartData.datasets;
 				title = 'Kategorien'; 
 			} else {
-				// hole Daten aus lineChartData.
+				// hole Daten 
 				const { 
 					labels: lineChartLabels, 
 					incomeData, 
@@ -2388,7 +2698,7 @@
 					balanceData   
 				} = lineChartData;
 				
-				// console.log("Debug: Destructuring complete, varData length: ", varData?.length);
+				// console.log("Debug: varData length: ", varData?.length);
 
 				labels = lineChartLabels;
 				datasets = [
@@ -2581,213 +2891,6 @@
 					});
 				}
 			}
-		}
-		
-		function _processData(filteredData, customCategories = []) {
-			// Wir iterieren hier zweimal damits lesbar bleibt 
-			// console.time("ProcessDataTimer");
-			
-			const einnahmenData = [];
-			const ausgabenData = [];
-			let totalIncome = 0;
-			let totalExpenses = 0; 
-			let totalFixedExpenses = 0; 
-			let totalVariableExpenses = 0;
-			const monthlyData = {};
-			const scatterData = []; 
-			
-			const customMonthlyData = {}; 
-			const customCategorySet = new Set(customCategories || []);
-
-			const KEY_OTHERS = '_others';
-			const uniqueMonths = new Set();
-			
-			const debugOthersMap = {}; 
-
-			//  Split Income/Expenses und Berechnung der Summen.
-			filteredData.forEach(row => {
-				const amount = row.Betrag || 0;
-	
-				const tableRow = { ...row }; 
-				const date = Utils.parseGermanDate(row.Buchungstag);
-
-				if (amount > 0) {
-					einnahmenData.push(tableRow);
-					totalIncome += amount;
-				} else if (amount < 0) {
-					ausgabenData.push(tableRow);
-					totalExpenses += amount;
-					if (row.Fixkosten) {
-						totalFixedExpenses += amount;
-					} else {
-						totalVariableExpenses += amount;
-					}
-
-					if (date && !row.Fixkosten) {
-						scatterData.push({
-							x: date.getTime(),
-							y: Math.abs(amount),
-							label: row["Verwendungszweck"] || 'N/A'
-						});
-					}
-				}
-			});
-			// console.log("Debug: Split complete. Income rows:", einnahmenData.length, "Expense rows:", ausgabenData.length);
-		
-			//  Monatliche Aggregation der Daten.
-			filteredData.forEach(row => {
-				const rowDate = Utils.parseGermanDate(row.Buchungstag);
-				if (!rowDate) return;
-
-				const monthKey = rowDate.getFullYear() + '-' + String(rowDate.getMonth() + 1).padStart(2, '0'); 
-				uniqueMonths.add(monthKey); 
-
-				if (!monthlyData[monthKey]) {
-					monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
-				}
-
-				const amount = row.Betrag || 0;
-				if (amount > 0) {
-					monthlyData[monthKey].income += amount;
-				} else if (amount < 0) {
-					const absAmount = Math.abs(amount);
-					if (row.Fixkosten) monthlyData[monthKey].fixed += absAmount;
-					else monthlyData[monthKey].variable += absAmount;
-					
-					// Behandle Top View.
-					if (customCategorySet.size > 0) {
-						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
-						if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
-
-						if (customCategorySet.has(rowCategory)) {
-							// Ist eine Top Kategorie
-							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
-							customMonthlyData[monthKey][rowCategory] += absAmount;
-						} else if (!row.Fixkosten && rowCategory !== "") {
-							// Ist weder Top Kategorie noch Fixkosten == "Sonstiges"
-							if (!customMonthlyData[monthKey][KEY_OTHERS]) customMonthlyData[monthKey][KEY_OTHERS] = 0;
-							customMonthlyData[monthKey][KEY_OTHERS] += absAmount;
-
-							// debug other kategorien 
-							if (!debugOthersMap[rowCategory]) debugOthersMap[rowCategory] = 0;
-							debugOthersMap[rowCategory] += absAmount;
-						}
-					}
-				}
-			});
-			
-			const variableAusgabenData = ausgabenData.filter(row => !row.Fixkosten);
-			const fixeAusgabenData = ausgabenData.filter(row => !!row.Fixkosten);
-			const totalBalance = totalIncome + totalExpenses;
-
-			// Prepare Pie Chart Data
-			const categoryTotalsVariableExpenses = {};
-			variableAusgabenData.forEach(row => {
-				const category = row.Kategorie || L("category_placeholder");
-				const amount = Math.abs(row.Betrag);
-				if (!categoryTotalsVariableExpenses[category]) categoryTotalsVariableExpenses[category] = 0;
-				categoryTotalsVariableExpenses[category] += amount;
-			});
-
-			// Standard View erstellen
-			const sortedMonths = Object.keys(monthlyData).sort();
-			const lineChartData = _buildStdLineData(sortedMonths, monthlyData);
-			
-			const sortedCustomMonths = Array.from(uniqueMonths).sort();
-			const customLineChartDatasets = [];
-			
-			// Top Kategorien View erstellen
-			(customCategories || []).forEach((category, index) => {
-				const data = sortedCustomMonths.map(month => {
-					return (customMonthlyData[month] && customMonthlyData[month][category]) ? customMonthlyData[month][category] : 0;
-				});
-		
-				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
-				customLineChartDatasets.push({
-					label: category, 
-					data: data,
-					borderColor: color,
-					backgroundColor: color, // Fallback
-					fill: false,
-					tension: 0.2
-				});
-			});
-
-			// Sonstige enthält vari ausgaben die nicht schon im array sind
-			if (customCategorySet.size > 0) {
-				const othersData = sortedCustomMonths.map(month => {
-					return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) ? customMonthlyData[month][KEY_OTHERS] : 0;
-				});
-				
-				const othersColor = '#CC60FF'; // Lila
-				const othersBg = 'rgba(153, 102, 255, 0.2)';
-
-				customLineChartDatasets.push({
-					label: L('vis_lines_other'), 
-					data: othersData,
-					borderColor: othersColor,
-					backgroundColor: othersBg,
-					fill: false,
-					tension: 0.2
-				});
-			}
-			
-			// console.timeEnd("ProcessDataTimer");
-
-			if (customCategorySet.size > 0 && Object.keys(debugOthersMap).length > 0) {
-				console.groupCollapsed(" DEBUG: Sonstige");
-				console.table(debugOthersMap);
-				console.groupEnd();
-			}
-
-			return {
-				summary: { totalIncome, totalExpenses, totalBalance },
-				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
-				expensePie: { categoryTotals: categoryTotalsVariableExpenses }, 
-				overviewPie: { totalIncome, totalFixedExpenses, totalVariableExpenses }, 
-				lineChart: lineChartData,
-				customLineChart: { labels: sortedCustomMonths, datasets: customLineChartDatasets },
-				scatterPlot: { data: scatterData }
-			};
-		}
-		
-		/**
-		 * erstellt Arrays für das Standard Liniendiagramm.
-		 */
-		function _buildStdLineData(sortedMonths, monthlyData) {
-			// Wir mappen die Basis Daten Arrays.
-			const incomeData = sortedMonths.map(k => monthlyData[k].income);
-			const fixedData = sortedMonths.map(k => monthlyData[k].fixed);
-			
-			const varData = sortedMonths.map(k => monthlyData[k].variable);
-			
-			// Gesamtausgaben pro Monat (Fix + Variabel).
-			const totalMonthlyExpenseData = sortedMonths.map(k => monthlyData[k].fixed + monthlyData[k].variable);
-			
-			// Saldo Kurve: Einnahmen minus Ausgaben.
-			const balanceData = sortedMonths.map(k => {
-				const income = monthlyData[k].income;
-				const expense = monthlyData[k].fixed + monthlyData[k].variable;
-				return income - expense;
-			});
-
-			// Kumulierte Ausgaben über die Zeit.
-			let cumExpense = 0;
-			const cumExpenseData = sortedMonths.map(k => {
-				cumExpense += monthlyData[k].fixed + monthlyData[k].variable;
-				return cumExpense;
-			});
-			
-			// var zu Key maps für Chart.js
-			return { 
-				labels: sortedMonths, 
-				incomeData: incomeData, 
-				fixedData: fixedData, 
-				varData: varData, 
-				cumulativeExpenseData: cumExpenseData, 
-				totalMonthlyExpenseData: totalMonthlyExpenseData, 
-				balanceData: balanceData 
-			};
 		}
 
 		
