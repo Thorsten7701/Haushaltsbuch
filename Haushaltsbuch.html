@@ -1736,7 +1736,6 @@
 	/**
 	 * @namespace VisualizeModule
 	 * @description Verwaltet die Visualisierungs Seite (Chart.js, Datumsfilter, Detail Tabellen).
-	 * Refactored: Update Logik in Sub Routinen aufgeteilt.
 	 */
 	const VisualizeModule = (function() {
 		let _myChartInstance = null; 
@@ -2304,12 +2303,14 @@
 				}
 			};
 		}
-		
+
 		/**
-		 * Baut die Arrays für das Standard Liniendiagramm.
+		 * Baut die Datasets für die Liniendiagrammses zusammen.
 		 */
-		function _buildStdLineData(sortedMonths, monthlyData) {
-			// Init arrays
+		function _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths) {
+			const sortedMonths = Array.from(uniqueMonths).sort();
+			
+			// Standard LineDiagram
 			const incomeData = [];
 			const fixedData = [];
 			const varData = [];
@@ -2340,8 +2341,7 @@
 				cumExpenseData.push(cumExpense);
 			});
 
-			// Return package für Chart.js
-			return { 
+			const lineChartData = { 
 				labels: sortedMonths, 
 				incomeData, 
 				fixedData, 
@@ -2350,18 +2350,8 @@
 				totalMonthlyExpenseData,
 				balanceData 
 			};
-		}
-
-		/**
-		 * Baut die Datasets für die Liniendiagrammses zusammen.
-		 */
-		function _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths) {
-			const sortedMonths = Array.from(uniqueMonths).sort();
 			
-			// Standard Line Data bauen
-			const lineChartData = _buildStdLineData(sortedMonths, monthlyData);
-			
-			// Custom Line Data bauen
+			// TopX Line Data bauen
 			const customLineChartDatasets = [];
 			const KEY_OTHERS = '_others';
 			const customCategorySet = new Set(customCategories || []);
@@ -2418,7 +2408,7 @@
 		}
 
 		/**
-		 * Verarbeitet keine Daten mehr sondern koordiniert sub routinen. 
+		 * koordiniert sub Datenverarbeitungs routinen. 
 		 */
 		function _processData(filteredData, customCategories = []) {
 			// console.time("ProcessDataTimer");
