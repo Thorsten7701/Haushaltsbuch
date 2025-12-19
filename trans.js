@@ -43,6 +43,7 @@ const locales = {
 		"btn_import_csv": "CSV Importieren",
 		"load_json_title": "Sitzung laden",
 		"load_json_desc": "Wählen Sie eine zuvor gespeicherte `.json`-Datei aus, um Ihre Daten und Regeln wiederherzustellen.",
+		"load_settings_only" : "Nur Regeln laden",
 		"btn_load_json": "JSON-Datei laden",
 		
 		// --- Mapping Step ---
@@ -182,6 +183,7 @@ const locales = {
 		"btn_import_csv": "Import CSV",
 		"load_json_title": "Load Session",
 		"load_json_desc": "Select a previously saved `.json` file to restore your data and rules.",
+		"load_settings_only" : "Load only Rules",
 		"btn_load_json": "Load JSON file",
 		
 		// --- Mapping Step ---

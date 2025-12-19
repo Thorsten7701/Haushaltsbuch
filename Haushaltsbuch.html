@@ -249,8 +249,13 @@
 		<div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-lg w-full">
 			<i class="fas fa-folder-open text-6xl text-[var(--color-scheme)] mb-6"></i>
 			<h2 class="text-2xl font-semibold mb-4" data-i18n="load_json_title"></h2>
-			<p class="text-gray-600 mb-8" data-i18n="load_json_desc"></p>
+			<p class="text-gray-600 mb-6" data-i18n="load_json_desc"></p>
 			
+			<div class="mb-8 flex items-center justify-center gap-3 bg-gray-50 p-3 rounded border border-gray-100">
+				<input type="checkbox" id="onlySetChk" class="w-4 h-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)] cursor-pointer">
+				<label for="onlySetsBox" class="text-sm text-gray-600 cursor-pointer select-none" data-i18n="load_settings_only"></label>
+			</div>
+
 			<label class="w-full flex items-center justify-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-6 py-3 rounded-lg cursor-pointer transition-colors duration-200 text-lg font-medium">
 				<i class="fas fa-upload"></i>
 				<span data-i18n="btn_load_json"></span>
@@ -1320,32 +1325,21 @@
 		function _handleJsonInput(e) {
 			const file = e.target.files[0];
 			if (!file) return;
-
+			//2512 onlyRuleflg um bestehende Regeln auf frische Daten anzuwenden.
+			const onlySetChk = document.getElementById('onlySetChk');
+			const onlySetFlg = onlySetChk ? onlySetChk.checked : false;
 			const reader = new FileReader();
 			reader.onload = function(event) {
 				try {
 					const text = event.target.result;
 					const parsedData = JSON.parse(text);
-
-					if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) {
-						throw new Error(L("msg_json_invalid"));
-					}
-					
-					Store.loadState(parsedData.data, parsedData.rules, parsedData.currency);
-					
+					if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) throw new Error(L("msg_json_invalid"));
+					const dataToLoad = onlySetFlg ? [] : parsedData.data;
+					Store.loadState(dataToLoad, parsedData.rules, parsedData.currency);
 					MainController.showPage('visualize'); 
-
-				} catch (err) {
-					console.error("Fehler beim Laden der JSON-Datei:", err);
-					Utils.showStatus("msg_crit_error", 'error', err.message);
-					Store.reset(); 
-				}
+				} catch (err) { Utils.showStatus("msg_crit_error", 'error', err.message); Store.reset(); }
 			};
-			
-			reader.onerror = function() {
-				Utils.showStatus("msg_crit_error", 'error', "Unbekannter Fehler beim Lesen.");
-			};
-
+			reader.onerror = function() { Utils.showStatus("msg_crit_error", 'error', "Fehler beim Lesen"); };
 			reader.readAsText(file);
 			DOM.jsonInput.value = '';
 		}
@@ -1354,7 +1348,6 @@
 			init: function() {
 				DOM.startNewBtn.addEventListener('click', () => MainController.showPage('import'));
 				DOM.loadSessionBtn.addEventListener('click', () => MainController.showPage('loadJson'));
-				
 				DOM.csvInput.addEventListener('change', _handleCsvInput);
 				DOM.jsonInput.addEventListener('change', _handleJsonInput);
 				DOM.cancelMappingBtn.addEventListener('click', _cancelMapping);

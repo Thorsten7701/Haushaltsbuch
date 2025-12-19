@@ -2,12 +2,11 @@
 
 B45
 Store: Use data caching to improve performance.
-Visuals: Added "top" logic + Income, Variable, and Fixed expenses details view.
 Fix: table data import + syncing issues. use local cellEdited callbacks
-New Apply and delete all categorization rules.
-Fix negative numbers enclosed in parentheses. 
-Fix encoding for Excel, use BOM.
+Fix negative numbers enclosed in parentheses and use BOM encoding for Excel.
 Fix dont allow rule dupes
-New "smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
-New csv Import now appends to existing Data if possible
+Visuals: Added "top" logic + Income, Variable, Fixed expenses and Balance details view.
+Apply and delete all categorization rules.
+"smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
+csv Import now appends to existing Data if possible, load session allows for only loading Rules.
 --------------------------
