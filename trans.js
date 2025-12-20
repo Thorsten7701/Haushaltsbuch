@@ -32,7 +32,7 @@ const locales = {
 
 	// --- Info Page ---
 	"info_modal_title":"🕊 Hey You🕊",
-	"info_modal_message":" Please send me a nice Picture with Greets Thank You! arjunae@nurFuerSpam.de",
+	"info_modal_message":" Please send me a nice Picture with Greets Thank You! arjunae@nurFuerSpam.de %s",
 	"modal_btn_close":"OK",
 
 	 // --- Import Page ---
@@ -172,7 +172,7 @@ const locales = {
 
 	// --- Info Page ---
 	"info_modal_title":"🕊 Hey You🕊",
-	"info_modal_message":" Please send me a nice Picture with Greets Thank You! arjunae@nurFuerSpam.de",
+	"info_modal_message":" Please send me a nice Picture with Greets Thank You! arjunae@nurFuerSpam.de %s",
 	"modal_btn_close":"OK",
 
 	 // --- Import Page ---

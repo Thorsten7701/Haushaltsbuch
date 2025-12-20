@@ -713,16 +713,19 @@
 		 */
 		function showConfirmationModal(titleKey, messageKey, confirmTextKey = 'modal_btn_confirm', args = [], isInfo = false) {
 			return new Promise(resolve => {
+				if (!titleKey || !messageKey) {
+					resolve(false)
+					return
+				}
 				DOM.modalTitle.textContent = L(titleKey);
-				DOM.modalMessage.textContent = L(messageKey, ...args);
+				DOM.modalMessage.innerHTML = L(messageKey, ...args);
 				DOM.modalConfirmBtn.textContent = L(confirmTextKey);
 				
 				DOM.modalConfirmBtn.classList.toggle('hidden', isInfo); 
-				// Info-Modus (pgeHome)
 				DOM.modalCancelBtn.textContent = isInfo ? L("modal_btn_close") : L("modal_btn_cancel");
 				
 				DOM.modalTitle.classList.toggle('text-red-600', !isInfo);
-				DOM.modalTitle.classList.toggle('text-[var(--color-scheme)]', isInfo); // Use var() for info color
+				DOM.modalTitle.classList.toggle('text-[var(--color-scheme)]', isInfo);
 
 				DOM.confirmationModal.classList.remove('hidden');
 				setTimeout(() => {
@@ -3084,7 +3087,7 @@
 				"info_modal_title",
 				"info_modal_message",
 				"modal_btn_close", 
-				[], 
+				["<br><br><a href='https://github.com/Thorsten7701/Haushaltsbuch' target='_blank' class='underline'>github.com/Thorsten7701/Haushaltsbuch</a>"], 
 				true 
 			);
 		}
