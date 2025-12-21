@@ -2050,54 +2050,47 @@
 			await _fixeAusgabenTableReadyPromise;
 		}
 
-		function _shiftDates(data) {
-			const occurrenceMap = {};
+		/* Schiebt doppelt gebuchte Fixkosten zum nächsten Monatsanfang  */
+	
+		function _shiftFixCosts(data) {
+			const occMap = {};
 
-			// zähle Duplikate
+			// finde doppelte Buchungen im selben Monat
 			data.forEach(row => {
-				if (!row.Fixkosten || !row.Buchungstag) return;
+				const date = Utils.parseGermanDate(row?.Buchungstag);
+				if (!row?.Fixkosten || !date) return;
+
+				const month = date.getMonth() + 1;
+				const key = `${date.getFullYear()}-${month}|${row.Verwendungszweck}|${row.Betrag}`;
 				
-				const parts = row.Buchungstag.split('-');
-				if (parts.length !== 3) return;
-				
-				const key = `${parts[0]}-${parts[1]}|${row.Kategorie}|${row.Betrag}`;
-				occurrenceMap[key] = (occurrenceMap[key] || 0) + 1;
+				occMap[key] ||= 0;
+				occMap[key]++;
 			});
 
 			return data.map(row => {
-				if (!row.Fixkosten) return row;
-				if (!row.Buchungstag) return row;
+				const date = Utils.parseGermanDate(row?.Buchungstag);
+				if (!row?.Fixkosten || !date) return row;
 
-				const parts = row.Buchungstag.split('-');
-				if (parts.length !== 3) return row;
-
-				let year = parseInt(parts[0], 10);
-				let month = parseInt(parts[1], 10); 
-				const day = parseInt(parts[2], 10);
-
-				// Check auf Uniqueness, um False Positives bei gleichen Beträgen zu vermeiden.
-				const key = `${parts[0]}-${parts[1]}|${row.Verwendungszweck}|${row.Betrag}`;
-				const count = occurrenceMap[key] || 0;
-				if (count < 2) return row;
-
-				const lastDayOfMonth = new Date(year, month, 0).getDate();
-
-				// Logik: Wenn die Buchung sehr spät im Monat ist (letzte 2 Tage), schieben in den nächsten Mnat.
-				if (day >= lastDayOfMonth - 2) {
-					month++;
-					
-					if (month > 12) {
-						month = 1;
-						year++;
-					}
-
-					const newDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
-					
-					// console.log(`Debug: Shifted date for '${row.Verwendungszweck}' from ${row.Buchungstag} to ${newDateStr}`);
+				const month = date.getMonth() + 1;
+				const key = `${date.getFullYear()}-${month}|${row.Verwendungszweck}|${row.Betrag}`;
 				
+				// Wenn die Buchung nur einmal da ist; nicht Glätten
+				if ((occMap[key] ?? 0) < 2) return row;
+
+				const day = date.getDate();
+				const year = date.getFullYear();
+				const lastDay = new Date(year, month, 0).getDate();
+
+				// Nur schieben wenns wirklich <2Tage zum Monatsende steht
+				if (day >= lastDay - 2) {
+					const nextMonth = new Date(year, month, 1);
+					const yearValue = nextMonth.getFullYear();
+					const monthValue = String(nextMonth.getMonth() + 1).padStart(2, '0');
+					
+					// console.log("debug shift", row.Verwendungszweck, "to", monthValue);
 					return {
 						...row,
-						Buchungstag: newDateStr
+						Buchungstag: `${yearValue}-${monthValue}-01`
 					};
 				}
 				
@@ -2131,7 +2124,7 @@
 			if (_actLinMode === 'top') {
 				isCustomChart = true;
 				
-				// Wir müssen die vari Ausgaben zusammenfassen, um die "Top" zu finden
+				// finde und fasse Varia Ausgaben zusammen
 				const variableExpenses = filteredData.filter(row =>
 					row.Betrag < 0 && !row.Fixkosten
 				);
@@ -2515,7 +2508,7 @@
 
 			let workingData = tableData;
 			if (DOM.dateShiftCheckbox && DOM.dateShiftCheckbox.checked) {
-				workingData = _shiftDates(tableData);
+				workingData = _shiftFixCosts(tableData);
 			}
 
 			const filteredData = _getFilteredData(workingData);
