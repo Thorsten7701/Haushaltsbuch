@@ -465,15 +465,17 @@
 			</div>
 		</div>
 
-		<div id="visContentScatter" class="w-full flex-grow flex flex-col hidden">
-			 <div class="flex-grow border border-gray-300 rounded-md bg-gray-50"> 
-				<div class="flex-grow flex flex-col items-center justify-start relative">
+		<div id="visContentScatter" class="hidden flex-1 flex flex-col">
+			<div class="flex-1 border border-gray-300 rounded-md bg-gray-50 flex flex-col overflow-hidden"> 
+				<div class="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center p-4 relative">
+					
 					<div id="chartEmptyStateScatter" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 hidden">
 						<i class="fas fa-braille text-6xl mb-4 opacity-20"></i>
 						<p class="text-xl">Keine Daten für Streudiagramm</p>
 						<p class="text-sm">Bitte Zeitraum prüfen.</p>
 					</div>
-					<div class="relative h-[49vh] w-[80vh]">
+					
+					<div class="relative w-full h-[65vh]">
 						<canvas id="scatterChartCanvas"></canvas>
 					</div>
 				</div>
