@@ -462,16 +462,6 @@
 						<canvas id="lineChartCanvas"></canvas>
 					</div>
 				</div>
-
-				<div class="p-2 bg-gray-100 border-t border-gray-200 flex justify-center items-center hidden">
-					<div class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1 rounded border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors duration-200" title="Verschiebt Fixkosten am Monatsende in den Folgemonat">
-						<input type="checkbox" id="dateShiftCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)] cursor-pointer m-0">
-						<label for="dateShiftCheckbox" class="text-sm font-medium text-gray-600 cursor-pointer select-none flex items-center gap-2 m-0">
-							<i class="fas fa-calendar-check text-purple-500"></i>
-							<span data-i18n="vis_date_shift_label">Glätten</span>
-						</label>
-					</div>
-				</div>
 			</div>
 		</div>
 
@@ -605,7 +595,6 @@
 		// Visualisierungs Krams
 		dateStart: document.getElementById('dateStart'),
 		dateEnd: document.getElementById('dateEnd'),
-		dateShiftCheckbox: document.getElementById('dateShiftCheckbox'),
 		categoriesChart: document.getElementById('categoriesChart'),
 		chartEmptyState: document.getElementById('chartEmptyState'),
 		
@@ -2050,54 +2039,6 @@
 			await _fixeAusgabenTableReadyPromise;
 		}
 
-		/* Schiebt doppelt gebuchte Fixkosten zum nächsten Monatsanfang  */
-	
-		function _shiftFixCosts(data) {
-			const occMap = {};
-
-			// finde doppelte Buchungen im selben Monat
-			data.forEach(row => {
-				const date = Utils.parseGermanDate(row?.Buchungstag);
-				if (!row?.Fixkosten || !date) return;
-
-				const month = date.getMonth() + 1;
-				const key = `${date.getFullYear()}-${month}|${row.Verwendungszweck}|${row.Betrag}`;
-				
-				occMap[key] ||= 0;
-				occMap[key]++;
-			});
-
-			return data.map(row => {
-				const date = Utils.parseGermanDate(row?.Buchungstag);
-				if (!row?.Fixkosten || !date) return row;
-
-				const month = date.getMonth() + 1;
-				const key = `${date.getFullYear()}-${month}|${row.Verwendungszweck}|${row.Betrag}`;
-				
-				// Wenn die Buchung nur einmal da ist; nicht Glätten
-				if ((occMap[key] ?? 0) < 2) return row;
-
-				const day = date.getDate();
-				const year = date.getFullYear();
-				const lastDay = new Date(year, month, 0).getDate();
-
-				// Nur schieben wenns wirklich <2Tage zum Monatsende steht
-				if (day >= lastDay - 2) {
-					const nextMonth = new Date(year, month, 1);
-					const yearValue = nextMonth.getFullYear();
-					const monthValue = String(nextMonth.getMonth() + 1).padStart(2, '0');
-					
-					// console.log("debug shift", row.Verwendungszweck, "to", monthValue);
-					return {
-						...row,
-						Buchungstag: `${yearValue}-${monthValue}-01`
-					};
-				}
-				
-				return row;
-			});
-		}
-
 		/* --- Daten Verarbeitung --- */
 		
 		function _getFilteredData(tableData) {
@@ -2506,12 +2447,7 @@
 				return;
 			}
 
-			let workingData = tableData;
-			if (DOM.dateShiftCheckbox && DOM.dateShiftCheckbox.checked) {
-				workingData = _shiftFixCosts(tableData);
-			}
-
-			const filteredData = _getFilteredData(workingData);
+			const filteredData = _getFilteredData(tableData);
 			const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
 			
 			const processedData = _processData(filteredData, customCategories);
@@ -2885,7 +2821,6 @@
 				
 				DOM.dateStart.addEventListener('change', updateChart);
 				DOM.dateEnd.addEventListener('change', updateChart);
-				DOM.dateShiftCheckbox.addEventListener('change', updateChart);
 				DOM.visLinesAllBtn.addEventListener('click', () => _handLinTog('all'));
 				DOM.visLinesTopBtn.addEventListener('click', () => _handLinTog('top'));
 
