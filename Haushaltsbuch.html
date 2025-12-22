@@ -948,6 +948,7 @@
 		const _initialState = {
 			tableData: [],
 			savedRules: [],
+			selTopCats: [], // Top10 Listview
 			currentCurrency: DOM.DEFAULT_CURRENCY
 		};
 		
@@ -995,9 +996,8 @@
 			},
 			
 			updateTableDataField: function(rowId, field, newValue) {
-				// Quick Check ob rowId valid ist, um Crash bei undefined zu preventen
 				if (!rowId && rowId !== 0) {
-					// console.error("Update aborted: invalid rowId", rowId);
+				      // console.error("Update aborted: invalid rowId", rowId);
 					return;
 				}
 
@@ -1005,13 +1005,11 @@
 
 				if (index !== -1) {
 					let updatedRow = { ..._state.tableData[index] };
-					
-					// Bleibt unkommentiert, damit wir den Data Flow live tracen können.
+					 // Bleibt unkommentiert, damit wir den Data Flow live tracen können.
 					console.log(`Debug: Updating row ${rowId}, field: ${field} ->`, newValue);
 
 					updatedRow[field] = newValue;
-					
-					// Manuelle edits flaggen damit wir die nich überschreiben.
+					 // Manuelle edits flaggen damit wir die nich überschreiben.
 					if (field === 'Kategorie') {
 						updatedRow.manual = true;
 					}
@@ -1040,13 +1038,16 @@
 				_emit('session_changed');
 			},
 
-			loadState: function(data, rules, currency) {
+			setSelTopCats: function(cats) { // top10 Listview sel doesnt change Data 
+				_state.selTopCats = Array.isArray(cats) ? cats : [];
+			},
+
+			loadState: function(data, rules, currency, selTopCats) {
 				// daten + regeln sanitizen
 				_state.tableData = (data || []).map(row => ({ 
 					...row, 
 					Betrag: Utils.parseGermanNumber(row.Betrag),
 					Fixkosten: row.Fixkosten ? 1 : 0,
-					// kategorie in den daten lowercasen
 					Kategorie: (row.Kategorie || "").toLowerCase()
 				}));
 				
@@ -1058,6 +1059,7 @@
 				}));
 				
 				_state.currentCurrency = currency || DOM.DEFAULT_CURRENCY;
+				_state.selTopCats = Array.isArray(selTopCats) ? selTopCats : []; // TOP10 Listview
 				
 				DOM.delimiterInput.value = ";"; 
 				_emit('session_changed');
@@ -1110,8 +1112,8 @@
 
 			applyAllRules: function(silent = false) {
 				let totalAffected = 0;
-				
-				// Kategorien nur resetten wenn sie nicht manuell editiert wurden
+
+				// Kategorien nur resetten wenn sie nicht manuell editiert wurden				
 				_state.tableData.forEach(row => {
 					if (!row.manual) {
 						row.Kategorie = "";
@@ -1329,7 +1331,7 @@
 			});
 			DOM.csvInput.value = '';
 		}
-		
+				
 		function _handleJsonInput(e) {
 			const file = e.target.files[0];
 			if (!file) return;
@@ -1343,7 +1345,8 @@
 					const parsedData = JSON.parse(text);
 					if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) throw new Error(L("msg_json_invalid"));
 					const dataToLoad = onlySetFlg ? [] : parsedData.data;
-					Store.loadState(dataToLoad, parsedData.rules, parsedData.currency);
+					// 2512 reloade selected top10 categories 
+					Store.loadState(dataToLoad, parsedData.rules, parsedData.currency, parsedData.selTopCats);
 					MainController.showPage('visualize'); 
 				} catch (err) { Utils.showStatus("msg_crit_error", 'error', err.message); Store.reset(); }
 			};
@@ -1895,7 +1898,6 @@
 		async function _handLinTog(mode) {
 			_actLinMode = mode;			
 				if (mode === 'top') {
-				_selectedTopCategories.clear();
 				DOM.lineChartLegendContainer.classList.remove('hidden');
 			} else {
 				DOM.lineChartLegendContainer.classList.add('hidden');
@@ -2031,15 +2033,12 @@
 			});
 		}
 
-		/**
-		 * Berechnet Top 10 Kats, rendert Listbox.
-		 */
-		function _calculateAndRenderTopListbox(filteredData) {
-			// Summen pro Kategorie
+
+function _calculateAndRenderTopListbox(filteredData) {
 			const categoryTotals = {};
+			// Summen pro Kategorie
 			
 			filteredData.forEach(row => {
-				// Nur echte Ausgaben, keine Fixkosten
 				if (row.Betrag < 0 && !row.Fixkosten) {
 					const category = (row.Kategorie || '').trim().toLowerCase();
 					if (!category) return;
@@ -2053,7 +2052,7 @@
 				.slice(0, 10)
 				.map(([cat]) => cat);
 				
-			// Listbox füllen
+			// Listbox füllen			
 			const container = DOM.lineChartLegendContent;
 			container.innerHTML = '';
 			
@@ -2061,15 +2060,15 @@
 				container.innerHTML = `<div class="text-xs text-gray-400 text-center italic p-2">Keine Daten</div>`;
 				return;
 			}
-			
+
 			topCategories.forEach((cat, index) => {
 				const div = document.createElement('div');
 				div.className = "flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer";
 				
+				// lade häkchen aus store
 				const isChecked = _selectedTopCategories.has(cat);
 				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
-				
-				// Farbindikator für die Legende
+				// Farbindikator für die Legende				
 				const colorBox = `<span class="w-2 h-2 rounded-full inline-block" style="background-color: ${color};"></span>`;
 				
 				div.innerHTML = `
@@ -2078,15 +2077,17 @@
 						${colorBox} ${cat}
 					</label>
 				`;
-				
-				// Event Listener für Liveupdate
+		
+				// Event Listener für Liveupdate				
 				div.querySelector('input').addEventListener('change', (e) => {
 					if (e.target.checked) {
 						_selectedTopCategories.add(cat);
 					} else {
 						_selectedTopCategories.delete(cat);
 					}
-					// performance: Nur Chart update
+					// console.log("debug cats", _selectedTopCategories)
+					// speichere häckchen im store
+					Store.setSelTopCats(Array.from(_selectedTopCategories));
 					_updateChartOnly(); 
 				});
 				
@@ -2838,7 +2839,7 @@
 		}
 		
 		function _handleSaveJson() {
-			const { tableData, savedRules, currentCurrency } = Store.getState();
+			const { tableData, savedRules, currentCurrency, selTopCats } = Store.getState();
 
 			if (tableData.length === 0 && savedRules.length === 0) {
 				Utils.showStatus("msg_no_data_to_save", 'info');
@@ -2848,7 +2849,8 @@
 			const dataToSave = {
 				currency: currentCurrency, 
 				rules: savedRules,
-				data: tableData
+				data: tableData,
+				selTopCats: selTopCats // top10 kategorien
 			};
 			
 			const jsonString = JSON.stringify(dataToSave, null, 2);
