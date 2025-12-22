@@ -303,8 +303,8 @@
 						</div>
 						
 						<div class="flex items-center pt-1">
-							<input type="checkbox" id="ruleFixkostenCheckbox" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]" disabled>
-							<label for="ruleFixkostenCheckbox" class="ml-2 block text-sm text-gray-700 font-medium" data-i18n="rules_fixkosten_label">
+							<input type="checkbox" id="ruleFixcostChk" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]" disabled>
+							<label for="ruleFixcostChk" class="ml-2 block text-sm text-gray-700 font-medium" data-i18n="rules_fixkosten_label">
 							</label>
 						</div>
 						
@@ -343,7 +343,7 @@
 		<nav class="flex items-center border-b border-gray-200 bg-white rounded-t-lg shadow p-2">
 			<div class="flex items-center flex-1">
 				
-				<button id="visPieTabOverview" class="tab-btn active flex items-center gap-2">
+				<button id="visTabPie" class="tab-btn active flex items-center gap-2">
 					<i class="fas fa-chart-pie text-[var(--color-scheme)]"></i><span data-i18n="vis_tab_pie">Torte</span>
 				</button>
 				<button id="visTabLines" class="tab-btn flex items-center gap-2">
@@ -381,10 +381,10 @@
 				 
 				 <div class="p-2 border-b border-gray-200 bg-gray-100 flex justify-center">
 					<div class="inline-flex rounded-md shadow-sm" role="group">
-						<button type="button" id="visOverviewToggleBtn" class="px-3 py-1 text-sm font-medium text-white bg-[var(--color-scheme)] border border-[var(--color-scheme)] rounded-l-lg hover:bg-[var(--color-scheme-hover)]">
+						<button type="button" id="visOverviewToggle" class="px-3 py-1 text-sm font-medium text-white bg-[var(--color-scheme)] border border-[var(--color-scheme)] rounded-l-lg hover:bg-[var(--color-scheme-hover)]">
 							<i class="fas fa-wallet mr-2"></i> <span data-i18n="vis_nested_pie_overview">Übersicht</span>
 						</button>
-						<button type="button" id="visCategoriesToggleBtn" class="px-3 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100">
+						<button type="button" id="visCategoriesToggle" class="px-3 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100">
 							<i class="fas fa-tags mr-2"></i> <span data-i18n="vis_nested_pie_expenses">Ausgaben</span>
 						</button>
 					</div>
@@ -498,10 +498,10 @@
 					<button id="visTabEinnahmen" class="details-tab-btn active flex items-center gap-2">
 						<i class="fas fa-plus-circle text-green-500"></i><span data-i18n="vis_nested_income"></span>
 					</button>
-					<button id="visTabVariableAusgaben" class="details-tab-btn flex items-center gap-2">
+					<button id="visTabVariAusg" class="details-tab-btn flex items-center gap-2">
 						<i class="fas fa-minus-circle text-red-500"></i><span data-i18n="vis_nested_variable"></span>
 					</button>
-					<button id="visTabFixeAusgaben" class="details-tab-btn flex items-center gap-2">
+					<button id="visTabFixeAusg" class="details-tab-btn flex items-center gap-2">
 						<i class="fas fa-file-invoice-dollar text-purple-500"></i><span data-i18n="vis_nested_fixed"></span>
 					</button>
 				</nav>
@@ -510,10 +510,10 @@
 					<div id="visContentEinnahmen" class="flex-grow flex flex-col min-h-0">
 						<div id="einnahmen-table" class="flex-grow min-h-0"></div>
 					</div>
-					<div id="visContentVariableAusgaben" class="flex-grow flex flex-col min-h-0 hidden">
+					<div id="visContentVariAusg" class="flex-grow flex flex-col min-h-0 hidden">
 						<div id="variable-ausgaben-table" class="flex-grow min-h-0"></div>
 					</div>
-					<div id="visContentFixeAusgaben" class="flex-grow flex flex-col min-h-0 hidden">
+					<div id="visContentFixeAusg" class="flex-grow flex flex-col min-h-0 hidden">
 						<div id="fixe-ausgaben-table" class="flex-grow min-h-0"></div>
 					</div>
 				</div>
@@ -598,7 +598,7 @@
 		ruleCategory: document.getElementById('ruleCategory'), 
 		categoryDatalist: document.getElementById('categoryDatalist'),
 		
-		ruleFixkostenCheckbox: document.getElementById('ruleFixkostenCheckbox'),
+		ruleFixcostChk: document.getElementById('ruleFixcostChk'),
 		matchCountPreview: document.getElementById('matchCountPreview'),
 		saveRuleBtn: document.getElementById('saveRuleBtn'),
 		rulesList: document.getElementById('rulesList'),
@@ -619,25 +619,24 @@
 		visTabDetails: document.getElementById('visTabDetails'),
 		visContentDetails: document.getElementById('visContentDetails'),
 		visTabEinnahmen: document.getElementById('visTabEinnahmen'),
-		visTabVariableAusgaben: document.getElementById('visTabVariableAusgaben'),
-		visTabFixeAusgaben: document.getElementById('visTabFixeAusgaben'),
+		visTabVariAusg: document.getElementById('visTabVariAusg'),
+		visTabFixeAusg: document.getElementById('visTabFixeAusg'),
 		visContentEinnahmen: document.getElementById('visContentEinnahmen'),
-		visContentVariableAusgaben: document.getElementById('visContentVariableAusgaben'),
-		visContentFixeAusgaben: document.getElementById('visContentFixeAusgaben'),
+		visContentVariAusg: document.getElementById('visContentVariAusg'),
+		visContentFixeAusg: document.getElementById('visContentFixeAusg'),
 		einnahmenTableEl: document.getElementById('einnahmen-table'),
 		variableAusgabenTableEl: document.getElementById('variable-ausgaben-table'),
 		fixeAusgabenTableEl: document.getElementById('fixe-ausgaben-table'),
 		
 		// Pie Tabs
-		visPieTabOverview: document.getElementById('visPieTabOverview'),
+		visTabPie: document.getElementById('visTabPie'),
 		visPieContentOverview: document.getElementById('visPieContentOverview'),
 		
 		// Tortendiagramm: Toggle Buttons und Container 
-		visOverviewToggleBtn: document.getElementById('visOverviewToggleBtn'),
-		visCategoriesToggleBtn: document.getElementById('visCategoriesToggleBtn'),
+		visOverviewToggle: document.getElementById('visOverviewToggle'),
+		visCategoriesToggle: document.getElementById('visCategoriesToggle'),
 		overviewChartContainer: document.getElementById('overviewChartContainer'),
 		categoriesChartContainer: document.getElementById('categoriesChartContainer'),
-
 		overviewChart: document.getElementById('overviewChart'),
 		chartEmptyStateOverview: document.getElementById('chartEmptyStateOverview'),
 		
@@ -868,7 +867,12 @@
 
 		function formatDateForInput(dateObj) {
 			if (!dateObj || isNaN(dateObj.getTime())) return '';
-			return dateObj.toISOString().split('T')[0];
+			// 2512 Fix dont use toISOString. Es wandelt in UTC um was in Zeitzonen östlich von Greenwich zum vorherigen Tag führt
+			const year = dateObj.getFullYear();
+			const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+			const day = String(dateObj.getDate()).padStart(2, '0');
+
+			return `${year}-${month}-${day}`;
 		}
 
 		function updateTexts() {
@@ -923,7 +927,7 @@
 			DOM.ruleSearch.placeholder = L('rules_search_placeholder');
 			DOM.ruleCategory.placeholder = L('rules_category_placeholder');
 		  
-			const categoriesBtnSpan = DOM.visCategoriesToggleBtn.querySelector('span');
+			const categoriesBtnSpan = DOM.visCategoriesToggle.querySelector('span');
 			if (categoriesBtnSpan) {
 				categoriesBtnSpan.textContent = L('vis_nested_variable');
 			}
@@ -1577,7 +1581,7 @@
 		async function _handleSaveRule() {
 			const search = DOM.ruleSearch.value.trim().toLowerCase();
 			const cat = DOM.ruleCategory.value.trim().toLowerCase(); 
-			const isFixkosten = DOM.ruleFixkostenCheckbox.checked;
+			const isFixkosten = DOM.ruleFixcostChk.checked;
 			
 			if (!search || !cat) {
 				Utils.showStatus("msg_rule_missing_fields", 'error'); 
@@ -1588,7 +1592,7 @@
 			
 			DOM.ruleSearch.value = '';
 			DOM.ruleCategory.value = ''; 
-			DOM.ruleFixkostenCheckbox.checked = false;
+			DOM.ruleFixcostChk.checked = false;
 			
 			if (_tableInstance && _tableReadyPromise) {
 				await _tableReadyPromise; 
@@ -1660,7 +1664,7 @@
 
 			DOM.ruleSearch.disabled = !hasData;
 			DOM.ruleCategory.disabled = !hasData;
-			DOM.ruleFixkostenCheckbox.disabled = !hasData;
+			DOM.ruleFixcostChk.disabled = !hasData;
 			DOM.saveRuleBtn.disabled = !hasData;
 
 			if (eventType === 'session_changed') {
@@ -1828,14 +1832,14 @@
 			DOM.visContentLines.classList.add('hidden');
 			DOM.visContentScatter.classList.add('hidden');
 			
-			DOM.visPieTabOverview.classList.remove('active');
+			DOM.visTabPie.classList.remove('active');
 			DOM.visTabDetails.classList.remove('active');
 			DOM.visTabLines.classList.remove('active');
 			DOM.visTabScatter.classList.remove('active');
 		   
 			if (tabName === 'overview') {
 				DOM.visPieContentOverview.classList.remove('hidden');
-				DOM.visPieTabOverview.classList.add('active');
+				DOM.visTabPie.classList.add('active');
 				_activeOverviewTab = 'overview'; 
 				_updateToggleButtons();
 			} else if (tabName === 'details') {
@@ -1844,11 +1848,11 @@
 				
 				_activeDetailTab = 'einnahmen';
 				DOM.visContentEinnahmen.classList.remove('hidden');
-				DOM.visContentVariableAusgaben.classList.add('hidden');
-				DOM.visContentFixeAusgaben.classList.add('hidden');
+				DOM.visContentVariAusg.classList.add('hidden');
+				DOM.visContentFixeAusg.classList.add('hidden');
 				DOM.visTabEinnahmen.classList.add('active');
-				DOM.visTabVariableAusgaben.classList.remove('active');
-				DOM.visTabFixeAusgaben.classList.remove('active');
+				DOM.visTabVariAusg.classList.remove('active');
+				DOM.visTabFixeAusg.classList.remove('active');
 
 			} else if (tabName === 'lines') {
 				DOM.visContentLines.classList.remove('hidden');
@@ -1863,11 +1867,11 @@
 		
 		async function _handleNestedTabClick(tabName) {
 			DOM.visContentEinnahmen.classList.add('hidden');
-			DOM.visContentVariableAusgaben.classList.add('hidden');
-			DOM.visContentFixeAusgaben.classList.add('hidden');
+			DOM.visContentVariAusg.classList.add('hidden');
+			DOM.visContentFixeAusg.classList.add('hidden');
 			DOM.visTabEinnahmen.classList.remove('active');
-			DOM.visTabVariableAusgaben.classList.remove('active');
-			DOM.visTabFixeAusgaben.classList.remove('active');
+			DOM.visTabVariAusg.classList.remove('active');
+			DOM.visTabFixeAusg.classList.remove('active');
 
 			_activeDetailTab = tabName;
 
@@ -1877,13 +1881,13 @@
 				await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
 			
 			} else if (tabName === 'variable') {
-				DOM.visContentVariableAusgaben.classList.remove('hidden');
-				DOM.visTabVariableAusgaben.classList.add('active');
+				DOM.visContentVariAusg.classList.remove('hidden');
+				DOM.visTabVariAusg.classList.add('active');
 				await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
 
 			} else if (tabName === 'fixe') {
-				DOM.visContentFixeAusgaben.classList.remove('hidden');
-				DOM.visTabFixeAusgaben.classList.add('active');
+				DOM.visContentFixeAusg.classList.remove('hidden');
+				DOM.visTabFixeAusg.classList.add('active');
 				await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
 			}
 		}
@@ -1908,8 +1912,8 @@
 		}
 
 		function _updateToggleButtons() {
-			const overviewBtn = DOM.visOverviewToggleBtn;
-			const categoriesBtn = DOM.visCategoriesToggleBtn;
+			const overviewBtn = DOM.visOverviewToggle;
+			const categoriesBtn = DOM.visCategoriesToggle;
 			const activeClasses = ['bg-[var(--color-scheme)]', 'text-white', 'border-[var(--color-scheme)]'];
 			const inactiveClasses = ['bg-white', 'text-gray-900', 'border-gray-300', 'hover:bg-gray-100'];
 
@@ -2682,17 +2686,17 @@ function _calculateAndRenderTopListbox(filteredData) {
 				DOM.visLinesAllBtn.addEventListener('click', () => _handLinTog('all'));
 				DOM.visLinesTopBtn.addEventListener('click', () => _handLinTog('top'));
 
-				DOM.visPieTabOverview.addEventListener('click', () => showTab('overview'));
+				DOM.visTabPie.addEventListener('click', () => showTab('overview'));
 				DOM.visTabDetails.addEventListener('click', () => showTab('details'));
 				DOM.visTabLines.addEventListener('click', () => showTab('lines'));
 				DOM.visTabScatter.addEventListener('click', () => showTab('scatter')); 
 				
-				DOM.visOverviewToggleBtn.addEventListener('click', () => _handleOverviewToggle('overview'));
-				DOM.visCategoriesToggleBtn.addEventListener('click', () => _handleOverviewToggle('categories'));
+				DOM.visOverviewToggle.addEventListener('click', () => _handleOverviewToggle('overview'));
+				DOM.visCategoriesToggle.addEventListener('click', () => _handleOverviewToggle('categories'));
 
 				DOM.visTabEinnahmen.addEventListener('click', () => _handleNestedTabClick('einnahmen'));
-				DOM.visTabVariableAusgaben.addEventListener('click', () => _handleNestedTabClick('variable'));
-				DOM.visTabFixeAusgaben.addEventListener('click', () => _handleNestedTabClick('fixe'));
+				DOM.visTabVariAusg.addEventListener('click', () => _handleNestedTabClick('variable'));
+				DOM.visTabFixeAusg.addEventListener('click', () => _handleNestedTabClick('fixe'));
 				
 				Store.subscribe((state, eventType) => {
 					if (eventType === 'session_changed' || eventType === 'data_changed') {
@@ -2806,11 +2810,11 @@ function _calculateAndRenderTopListbox(filteredData) {
 		
 		function _resetNestedTabToEinnahmen() {
 			DOM.visContentEinnahmen.classList.remove('hidden');
-			DOM.visContentVariableAusgaben.classList.add('hidden');
-			DOM.visContentFixeAusgaben.classList.add('hidden');
+			DOM.visContentVariAusg.classList.add('hidden');
+			DOM.visContentFixeAusg.classList.add('hidden');
 			DOM.visTabEinnahmen.classList.add('active');
-			DOM.visTabVariableAusgaben.classList.remove('active');
-			DOM.visTabFixeAusgaben.classList.remove('active');
+			DOM.visTabVariAusg.classList.remove('active');
+			DOM.visTabFixeAusg.classList.remove('active');
 		}
 
 
@@ -2830,8 +2834,8 @@ function _calculateAndRenderTopListbox(filteredData) {
 				DOM.ruleCategory.disabled = true;
 				DOM.ruleCategory.value = '';
 				
-				DOM.ruleFixkostenCheckbox.disabled = true;
-				DOM.ruleFixkostenCheckbox.checked = false;
+				DOM.ruleFixcostChk.disabled = true;
+				DOM.ruleFixcostChk.checked = false;
 				
 				Utils.showStatus("msg_session_reset", 'info');
 				showPage('home');
