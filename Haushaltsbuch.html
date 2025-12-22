@@ -450,17 +450,28 @@
 			
 			<div class="flex-1 border border-t-0 border-gray-300 rounded-b-md bg-gray-50 flex flex-col overflow-hidden"> 
 				
-				<div class="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center p-4 relative">
+				<div class="flex-1 w-full max-w-6xl mx-auto flex flex-row items-stretch p-4 relative gap-4">
 					
-					<div id="chartEmptyStateLines" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10">
-						<i class="fas fa-chart-line text-6xl mb-4 opacity-20"></i>
-						<p class="text-xl" data-i18n="vis_chart_lines_empty">Keine Daten für Liniendiagramm</p>
-						<p class="text-sm">Bitte Zeitraum prüfen.</p>
+					<div class="relative flex-1 min-w-0">
+						<div id="chartEmptyStateLines" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10">
+							<i class="fas fa-chart-line text-6xl mb-4 opacity-20"></i>
+							<p class="text-xl" data-i18n="vis_chart_lines_empty">Keine Daten für Liniendiagramm</p>
+							<p class="text-sm">Bitte Zeitraum prüfen.</p>
+						</div>
+						
+						<div class="relative w-full h-[65vh]">
+							<canvas id="lineChartCanvas"></canvas>
+						</div>
 					</div>
-					
-					<div class="relative w-full h-[65vh]">
-						<canvas id="lineChartCanvas"></canvas>
+
+					<div id="lineChartLegendContainer" class="hidden w-fit flex-none flex flex-col bg-white border border-gray-200 rounded shadow-sm overflow-hidden self-start mt-4 mr-2">
+						<div class="bg-gray-100 p-1.5 border-b border-gray-200 font-bold text-[10px] text-gray-600 uppercase tracking-wider text-center">
+							Top 10
+						</div>
+						<div id="lineChartLegendContent" class="overflow-y-auto flex-1 p-1 space-y-0.5 flex flex-col justify-center">
+						</div>
 					</div>
+
 				</div>
 			</div>
 		</div>
@@ -636,8 +647,11 @@
 		lineChartCanvas: document.getElementById('lineChartCanvas'),
 		chartEmptyStateLines: document.getElementById('chartEmptyStateLines'),
 		visLinesAllBtn: document.getElementById('visLinesAllBtn'),
+		// Top10
 		visLinesTopBtn: document.getElementById('visLinesTopBtn'),
-
+		lineChartLegendContainer: document.getElementById('lineChartLegendContainer'),
+		lineChartLegendContent: document.getElementById('lineChartLegendContent'),
+		
 		// Streudiagramm
 		visTabScatter: document.getElementById('visTabScatter'),
 		visContentScatter: document.getElementById('visContentScatter'),
@@ -1736,19 +1750,20 @@
 		let _isInitialized = false;
 		
 		let _activeOverviewTab = 'overview';
-		let _actLinMode = 'all'; // Default auf "Alle" setzen
+		let _actLinMode = 'all'; // 'all' oder 'top'
 		let _activeDetailTab = 'einnahmen'; 
+
+		// State für die Top-Auswahl (Set verhindert Dubletten automatisch)
+		let _selectedTopCategories = new Set();
 
 		let _einnahmenTableReadyPromise = null;
 		let _variableAusgabenTableReadyPromise = null;
 		let _fixeAusgabenTableReadyPromise = null;
 
-		// Cache für Detail Daten
+		// Cache für Detail Daten um nicht dauernd neu rechnen zu müssen
 		let _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
 
-		/**
-		 * Custom date sorter.
-		 */
+		/** Custom date sorter für Tabulator */
 		function _dateSorter(a, b) {
 			const dateA = a ? new Date(a) : null;
 			const dateB = b ? new Date(b) : null;
@@ -1759,37 +1774,28 @@
 		}
 
 		function _destroyCharts() {
-			if (_myChartInstance) {
-				_myChartInstance.destroy();
-				_myChartInstance = null;
-			}
-			if (_myOverviewChartInstance) {
-				_myOverviewChartInstance.destroy();
-				_myOverviewChartInstance = null;
-			}
-			if (_myLineChartInstance) {
-				_myLineChartInstance.destroy();
-				_myLineChartInstance = null;
-			}
-			if (_myScatterChartInstance) {
-				_myScatterChartInstance.destroy();
-				_myScatterChartInstance = null;
-			}
+			_myChartInstance?.destroy();
+			_myChartInstance = null;
+			
+			_myOverviewChartInstance?.destroy();
+			_myOverviewChartInstance = null;
+			
+			_myLineChartInstance?.destroy();
+			_myLineChartInstance = null;
+			
+			_myScatterChartInstance?.destroy();
+			_myScatterChartInstance = null;
 		}
 
 		function _destroyDetailTables() {
-			if (_einnahmenTableInstance) {
-				_einnahmenTableInstance.destroy();
-				_einnahmenTableInstance = null;
-			}
-			if (_variableAusgabenTableInstance) {
-				_variableAusgabenTableInstance.destroy();
-				_variableAusgabenTableInstance = null;
-			}
-			if (_fixeAusgabenTableInstance) {
-				_fixeAusgabenTableInstance.destroy();
-				_fixeAusgabenTableInstance = null;
-			}
+			_einnahmenTableInstance?.destroy();
+			_einnahmenTableInstance = null;
+			
+			_variableAusgabenTableInstance?.destroy();
+			_variableAusgabenTableInstance = null;
+			
+			_fixeAusgabenTableInstance?.destroy();
+			_fixeAusgabenTableInstance = null;
 			
 			_einnahmenTableReadyPromise = null;
 			_variableAusgabenTableReadyPromise = null;
@@ -1885,9 +1891,16 @@
 			await updateChart(); 
 		}
 		
-		// Handler für das Umschalten zw. Alle und Top im Liniendiagramm
+		// switcht zw Alle und Top um
 		async function _handLinTog(mode) {
-			_actLinMode = mode;
+			_actLinMode = mode;			
+				if (mode === 'top') {
+				_selectedTopCategories.clear();
+				DOM.lineChartLegendContainer.classList.remove('hidden');
+			} else {
+				DOM.lineChartLegendContainer.classList.add('hidden');
+			}
+
 			_updLinTogBtns();
 			await updateChart();
 		}
@@ -1934,25 +1947,13 @@
 
 		/* --- Tabellen Initialisierung --- */
 
-		 async function _updateEinnahmenTable(data) {
+		async function _updateEinnahmenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_einnahmenTableInstance) {
-				_einnahmenTableInstance.destroy();
-				_einnahmenTableInstance = null;
-			}
-			_einnahmenTableReadyPromise = null;
-			
-			// console.log("Debug: Init Einnahmen Table with " + data.length + " rows."); // Mal checken ob Daten ankommen
-
+			if (_einnahmenTableInstance) { _einnahmenTableInstance.destroy(); _einnahmenTableInstance = null; }
 			_einnahmenTableReadyPromise = new Promise((resolve) => {
 				_einnahmenTableInstance = new Tabulator(DOM.einnahmenTableEl, {
-					data: data,
-					layout: "fitColumns",
-					height: "100%",
-					placeholder: L("vis_placeholder_no_income"),
-					initialSort: [
-						{ column: "Buchungstag", dir: "desc" }
-					],
+					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_income"),
+					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea" },
@@ -1960,8 +1961,7 @@
 							formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
 							bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
 						}
-					],
-					tableBuilt: function() { resolve(); }
+					], tableBuilt: function() { resolve(); }
 				});
 			});
 			await _einnahmenTableReadyPromise;
@@ -1969,36 +1969,22 @@
 		
 		async function _updateVariableAusgabenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_variableAusgabenTableInstance) {
-				_variableAusgabenTableInstance.destroy();
-				_variableAusgabenTableInstance = null;
-			}
-			_variableAusgabenTableReadyPromise = null;
+			if (_variableAusgabenTableInstance) { _variableAusgabenTableInstance.destroy(); _variableAusgabenTableInstance = null; }
 			_variableAusgabenTableReadyPromise = new Promise((resolve) => {
 				_variableAusgabenTableInstance = new Tabulator(DOM.variableAusgabenTableEl, {
-					data: data,
-					layout: "fitColumns",
-					height: "100%", 
-					placeholder: L("vis_placeholder_no_variable"),
-					initialSort: [
-						{ column: "Buchungstag", dir: "desc" }
-					],
+					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_variable"),
+					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
 						{ title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
-							formatter: function(cell) {
-								const val = cell.getValue();
-								if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`;
-								return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
-							}
+							formatter: function(cell) { return cell.getValue() ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${cell.getValue()}</span>` : ''; }
 						},
 						{ title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 100,
 							formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
 							bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
 						}
-					],
-					tableBuilt: function() { resolve(); }
+					], tableBuilt: function() { resolve(); }
 				});
 			});
 			await _variableAusgabenTableReadyPromise;
@@ -2006,36 +1992,22 @@
 		
 		async function _updateFixeAusgabenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_fixeAusgabenTableInstance) {
-				_fixeAusgabenTableInstance.destroy();
-				_fixeAusgabenTableInstance = null;
-			}
-			_fixeAusgabenTableReadyPromise = null;
+			if (_fixeAusgabenTableInstance) { _fixeAusgabenTableInstance.destroy(); _fixeAusgabenTableInstance = null; }
 			_fixeAusgabenTableReadyPromise = new Promise((resolve) => {
 				_fixeAusgabenTableInstance = new Tabulator(DOM.fixeAusgabenTableEl, {
-					data: data,
-					layout: "fitColumns",
-					height: "100%",
-					placeholder: L("vis_placeholder_no_fixed"),
-					initialSort: [
-						{ column: "Buchungstag", dir: "desc" }
-					],
+					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_fixed"),
+					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
 						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 120 },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
 						{ title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
-							formatter: function(cell) {
-								const val = cell.getValue();
-								if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`;
-								return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
-							}
+							formatter: function(cell) { return cell.getValue() ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${cell.getValue()}</span>` : ''; }
 						},
 						{ title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 120,
 							formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
 							bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
 						}
-					],
-					tableBuilt: function() { resolve(); }
+					], tableBuilt: function() { resolve(); }
 				});
 			});
 			await _fixeAusgabenTableReadyPromise;
@@ -2059,43 +2031,85 @@
 			});
 		}
 
-		function _getCustomChartConfig(filteredData) {
-			//  Toggle State
+		/**
+		 * Berechnet Top 10 Kats, rendert Listbox.
+		 */
+		function _calculateAndRenderTopListbox(filteredData) {
+			// Summen pro Kategorie
+			const categoryTotals = {};
+			
+			filteredData.forEach(row => {
+				// Nur echte Ausgaben, keine Fixkosten
+				if (row.Betrag < 0 && !row.Fixkosten) {
+					const category = (row.Kategorie || '').trim().toLowerCase();
+					if (!category) return;
+					categoryTotals[category] = (categoryTotals[category] || 0) + Math.abs(row.Betrag);
+				}
+			});
+
+			// Top 10 sortieren
+			const topCategories = Object.entries(categoryTotals)
+				.sort(([, a], [, b]) => b - a)
+				.slice(0, 10)
+				.map(([cat]) => cat);
+				
+			// Listbox füllen
+			const container = DOM.lineChartLegendContent;
+			container.innerHTML = '';
+			
+			if (topCategories.length === 0) {
+				container.innerHTML = `<div class="text-xs text-gray-400 text-center italic p-2">Keine Daten</div>`;
+				return;
+			}
+			
+			topCategories.forEach((cat, index) => {
+				const div = document.createElement('div');
+				div.className = "flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer";
+				
+				const isChecked = _selectedTopCategories.has(cat);
+				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+				
+				// Farbindikator für die Legende
+				const colorBox = `<span class="w-2 h-2 rounded-full inline-block" style="background-color: ${color};"></span>`;
+				
+				div.innerHTML = `
+					<input type="checkbox" id="chk-top-${index}" value="${cat}" class="w-3 h-3 text-[var(--color-scheme)] rounded focus:ring-0 cursor-pointer" ${isChecked ? 'checked' : ''}>
+					<label for="chk-top-${index}" class="text-xs text-gray-700 cursor-pointer flex-1 truncate select-none flex items-center gap-2">
+						${colorBox} ${cat}
+					</label>
+				`;
+				
+				// Event Listener für Liveupdate
+				div.querySelector('input').addEventListener('change', (e) => {
+					if (e.target.checked) {
+						_selectedTopCategories.add(cat);
+					} else {
+						_selectedTopCategories.delete(cat);
+					}
+					// performance: Nur Chart update
+					_updateChartOnly(); 
+				});
+				
+				container.appendChild(div);
+			});
+		}
+
+		function _getCustomChartConfig() {
 			let customCategories = [];
 			let isCustomChart = false;
 
 			if (_actLinMode === 'top') {
 				isCustomChart = true;
-				
-				// finde und fasse Varia Ausgaben zusammen
-				const variableExpenses = filteredData.filter(row =>
-					row.Betrag < 0 && !row.Fixkosten
-				);
-				const categoryTotals = {};
-				
-				variableExpenses.forEach(row => {
-					const category = (row.Kategorie || '').trim().toLowerCase();
-					if (!category) return; 
-					const amount = Math.abs(row.Betrag);
-					categoryTotals[category] = (categoryTotals[category] || 0) + amount;
-				});
-				
-				// Sortieren und Top Werte nehmen
-				customCategories = Object.entries(categoryTotals)
-					.sort(([, a], [, b]) => b - a) 
-					.slice(0, 5) 
-					.map(([category]) => category); 
+				customCategories = Array.from(_selectedTopCategories);
 			}
 
-			// beide leer, nutze  den Standard-View.
 			return { customCategories, isCustomChart };
 		}
 		
 		/**
-		 * Aggregiert die Rohdaten und berechnet Summen.
+		 * Aggregiert die Rohdaten und berechnet Summen für alle Charts.
 		 */
 		function _aggregateData(filteredData, customCategories = []) {
-	
 			if (!filteredData) return null;
 
 			const einnahmenData = [];
@@ -2111,18 +2125,13 @@
 			const customMonthlyData = {};
 			const uniqueMonths = new Set();
 			
-			// Helferset für schnellen Lookup
 			const customCategorySet = new Set(customCategories || []);
-			const KEY_OTHERS = '_others';
-			// const debugOthersMap = {}; // // console.log("Debug map init");
-
-			// Iteriere über die gefilterten Daten
+			
 			filteredData.forEach(row => {
 				const amount = row.Betrag || 0;
-				const tableRow = { ...row }; // Copy row
+				const tableRow = { ...row };
 				const date = Utils.parseGermanDate(row.Buchungstag);
 				
-				// Split Income -Exp.
 				if (amount > 0) {
 					einnahmenData.push(tableRow);
 					totalIncome += amount;
@@ -2130,12 +2139,9 @@
 					ausgabenData.push(tableRow);
 					totalExpenses += amount;
 					
-					if (row.Fixkosten) {
-						totalFixedExpenses += amount;
-					} else {
-						totalVariableExpenses += amount;
-					}
-
+					if (row.Fixkosten) totalFixedExpenses += amount;
+					else totalVariableExpenses += amount;
+					
 					// Scatter braucht nur Ausgaben und valides Datum
 					if (date && !row.Fixkosten) {
 						scatterData.push({
@@ -2146,15 +2152,13 @@
 					}
 				}
 				
-				// Monthly Aggre Logic
-				if (!date) return; // Skip invalid dates
+				 // Monthly Aggre Logic
+				if (!date) return;
 				
 				const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
 				uniqueMonths.add(monthKey);
 
-				if (!monthlyData[monthKey]) {
-					monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
-				}
+				if (!monthlyData[monthKey]) monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
 				
 				if (amount > 0) {
 					monthlyData[monthKey].income += amount;
@@ -2166,20 +2170,15 @@
 						monthlyData[monthKey].variable += absAmount;
 					}
 					
-					// Handl Top Kategorien
+					// Daten für Custom Lines sammeln
 					if (customCategorySet.size > 0) {
 						const rowCategory = (row.Kategorie || '').trim().toLowerCase();
 						if (!customMonthlyData[monthKey]) customMonthlyData[monthKey] = {};
 
 						if (customCategorySet.has(rowCategory)) {
-							// Jay; Top Kategorie
-							if (!customMonthlyData[monthKey][rowCategory]) customMonthlyData[monthKey][rowCategory] = 0;
+							customMonthlyData[monthKey][rowCategory] ??= 0;
 							customMonthlyData[monthKey][rowCategory] += absAmount;
-						} else if (!row.Fixkosten && rowCategory !== "") {
-							// Sonstige
-							if (!customMonthlyData[monthKey][KEY_OTHERS]) customMonthlyData[monthKey][KEY_OTHERS] = 0;
-							customMonthlyData[monthKey][KEY_OTHERS] += absAmount;
-						}
+						} 
 					}
 				}
 			});
@@ -2189,20 +2188,9 @@
 			const totalBalance = totalIncome + totalExpenses;
 
 			return {
-				einnahmenData,
-				variableAusgabenData,
-				fixeAusgabenData,
-				scatterData,
-				monthlyData,
-				customMonthlyData,
-				uniqueMonths,
-				totals: {
-					totalIncome,
-					totalExpenses,
-					totalFixedExpenses,
-					totalVariableExpenses,
-					totalBalance
-				}
+				einnahmenData, variableAusgabenData, fixeAusgabenData, scatterData,
+				monthlyData, customMonthlyData, uniqueMonths,
+				totals: { totalIncome, totalExpenses, totalFixedExpenses, totalVariableExpenses, totalBalance }
 			};
 		}
 
@@ -2218,53 +2206,36 @@
 				const category = row.Kategorie || L("category_placeholder");
 				const amount = Math.abs(row.Betrag);
 				
-				if (!categoryTotalsVariableExpenses[category]) {
-					categoryTotalsVariableExpenses[category] = 0;
-				}
+				categoryTotalsVariableExpenses[category] ??= 0;
 				categoryTotalsVariableExpenses[category] += amount;
 			});
 
 			return {
-				expensePie: { 
-					categoryTotals: categoryTotalsVariableExpenses 
-				},
-				overviewPie: { 
-					totalIncome: totals.totalIncome, 
-					totalFixedExpenses: totals.totalFixedExpenses, 
-					totalVariableExpenses: totals.totalVariableExpenses 
-				}
+				expensePie: { categoryTotals: categoryTotalsVariableExpenses },
+				overviewPie: { totalIncome: totals.totalIncome, totalFixedExpenses: totals.totalFixedExpenses, totalVariableExpenses: totals.totalVariableExpenses }
 			};
 		}
 
 		/**
-		 * Baut die Datasets für die Liniendiagrammses zusammen.
+		 * Baut die Datasets für die Liniendiagramme zusammen.
 		 */
 		function _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths) {
 			const sortedMonths = Array.from(uniqueMonths).sort();
 			
-			// Standard LineDiagram
-			const incomeData = [];
-			const fixedData = [];
-			const varData = [];
-			const totalMonthlyExpenseData = [];
-			const balanceData = [];
-			const cumExpenseData = [];
-			
+			// Standard LineDiagram Datensätze
+			const incomeData = [], fixedData = [], varData = [], totalMonthlyExpenseData = [], balanceData = [], cumExpenseData = [];
 			let cumExpense = 0;
 
 			sortedMonths.forEach(k => {
 				const mData = monthlyData[k] || { income: 0, fixed: 0, variable: 0 };
-				
 				const inc = mData.income;
 				const fix = mData.fixed;
 				const vari = mData.variable;
-				
 				const totalExp = fix + vari;
 				const currentBalance = inc - totalExp;
 				
 				cumExpense += totalExp;
 
-				// Push to arrays
 				incomeData.push(inc);
 				fixedData.push(fix);
 				varData.push(vari);
@@ -2274,26 +2245,17 @@
 			});
 
 			const lineChartData = { 
-				labels: sortedMonths, 
-				incomeData, 
-				fixedData, 
-				varData, 
-				cumulativeExpenseData: cumExpenseData, 
-				totalMonthlyExpenseData,
-				balanceData 
+				labels: sortedMonths, incomeData, fixedData, varData, 
+				cumulativeExpenseData: cumExpenseData, totalMonthlyExpenseData, balanceData 
 			};
 			
-			// TopX Line Data bauen
+			// TopX Line Data Sets bauen
 			const customLineChartDatasets = [];
-			const KEY_OTHERS = '_others';
-			const customCategorySet = new Set(customCategories || []);
-
+			
 			if (customCategories && customCategories.length > 0) {
 				customCategories.forEach((category, index) => {
 					const data = sortedMonths.map(month => {
-						return (customMonthlyData[month] && customMonthlyData[month][category]) 
-							? customMonthlyData[month][category] 
-							: 0;
+						return customMonthlyData[month]?.[category] ?? 0;
 					});
 			
 					const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
@@ -2307,81 +2269,36 @@
 						tension: 0.2
 					});
 				});
-
-				// Sonstige
-				if (customCategorySet.size > 0) {
-					const othersData = sortedMonths.map(month => {
-						return (customMonthlyData[month] && customMonthlyData[month][KEY_OTHERS]) 
-							? customMonthlyData[month][KEY_OTHERS] 
-							: 0;
-					});
-					
-					const othersColor = '#CC60FF'; // lila
-					const othersBg = 'rgba(153, 102, 255, 0.2)';
-
-					customLineChartDatasets.push({
-						label: L('vis_lines_other'), 
-						data: othersData,
-						borderColor: othersColor,
-						backgroundColor: othersBg,
-						fill: false,
-						tension: 0.2
-					});
-				}
 			}
 
 			return {
 				lineChart: lineChartData,
-				customLineChart: { 
-					labels: sortedMonths, 
-					datasets: customLineChartDatasets 
-				}
+				customLineChart: { labels: sortedMonths, datasets: customLineChartDatasets }
 			};
 		}
 
 		/**
-		 * koordiniert sub Datenverarbeitungs routinen. 
+		 * Koordiniert die Datenverarbeitungsroutinen. 
 		 */
 		function _processData(filteredData, customCategories = []) {
-			// console.time("ProcessDataTimer");
-			
 			const aggResult = _aggregateData(filteredData, customCategories);
 			
 			if (!aggResult) {
 				return { summary: {}, details: {}, expensePie: {}, overviewPie: {}, lineChart: {}, customLineChart: {}, scatterPlot: {} };
 			}
 
-			const { 
-				einnahmenData, 
-				variableAusgabenData, 
-				fixeAusgabenData, 
-				scatterData, 
-				monthlyData, 
-				customMonthlyData, 
-				uniqueMonths, 
-				totals 
-			} = aggResult;
+			const { einnahmenData, variableAusgabenData, fixeAusgabenData, scatterData, monthlyData, customMonthlyData, uniqueMonths, totals } = aggResult;
 
 			// Pie Charts
 			const pieData = _preparePieData(variableAusgabenData, totals);
 
-			//Line Charts
+			// Line Charts
 			const lineData = _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths);
 			
-			// console.timeEnd("ProcessDataTimer");
-
-			// Zusammenbaun
+			// Objekt zusammenbaun
 			return {
-				summary: { 
-					totalIncome: totals.totalIncome, 
-					totalExpenses: totals.totalExpenses, 
-					totalBalance: totals.totalBalance 
-				},
-				details: { 
-					einnahmenData, 
-					variableAusgabenData, 
-					fixeAusgabenData 
-				},
+				summary: { totalIncome: totals.totalIncome, totalExpenses: totals.totalExpenses, totalBalance: totals.totalBalance },
+				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
 				expensePie: pieData.expensePie,
 				overviewPie: pieData.overviewPie,
 				lineChart: lineData.lineChart,
@@ -2397,19 +2314,17 @@
 				DOM.overviewChartContainer.classList.add('hidden');
 				DOM.categoriesChartContainer.classList.remove('hidden');
 				
-				if (_myOverviewChartInstance) {
-					_myOverviewChartInstance.destroy();
-					_myOverviewChartInstance = null;
-				}
+				_myOverviewChartInstance?.destroy();
+				_myOverviewChartInstance = null;
+
 				_updateCategoriesPieChart(processedData.expensePie, currentCurrency);
 			} else {
 				DOM.overviewChartContainer.classList.remove('hidden');
 				DOM.categoriesChartContainer.classList.add('hidden');
 				
-				if (_myChartInstance) {
-					_myChartInstance.destroy();
-					_myChartInstance = null;
-				}
+				_myChartInstance?.destroy();
+				_myChartInstance = null;
+
 				_updateOverviewPieChart(processedData.overviewPie, currentCurrency);
 			}
 		}
@@ -2431,14 +2346,21 @@
 
 		async function _refreshDetailTables() {
 			if (DOM.visContentDetails.classList.contains('hidden')) return;
+			if (_activeDetailTab === 'einnahmen') await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
+			else if (_activeDetailTab === 'variable') await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
+			else if (_activeDetailTab === 'fixe') await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
+		}
 
-			if (_activeDetailTab === 'einnahmen') {
-				await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
-			} else if (_activeDetailTab === 'variable') {
-				await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
-			} else if (_activeDetailTab === 'fixe') {
-				await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
-			}
+		// Wird intern aufgerufen, wenn nur Checkbox geklickt wird.
+		async function _updateChartOnly() {
+			const { tableData, currentCurrency } = Store.getState();
+			if (tableData.length === 0) return;
+
+			const filteredData = _getFilteredData(tableData);
+			const { customCategories, isCustomChart } = _getCustomChartConfig();
+			const processedData = _processData(filteredData, customCategories);
+
+			_refreshLineSection(processedData, currentCurrency, isCustomChart);
 		}
 
 		async function updateChart() {
@@ -2450,8 +2372,16 @@
 			}
 
 			const filteredData = _getFilteredData(tableData);
-			const { customCategories, isCustomChart } = _getCustomChartConfig(filteredData);
 			
+			// bei init und Datum-Change rendern wir die Listbox.
+			if (_actLinMode === 'top') {
+				_calculateAndRenderTopListbox(filteredData);
+				DOM.lineChartLegendContainer.classList.remove('hidden');
+			} else {
+				DOM.lineChartLegendContainer.classList.add('hidden');
+			}
+			
+			const { customCategories, isCustomChart } = _getCustomChartConfig();
 			const processedData = _processData(filteredData, customCategories);
 			
 			_cachedDetailData = processedData.details;
@@ -2488,7 +2418,7 @@
 			if (totalIncome === 0 && totalFixedExpenses === 0 && totalVariableExpenses === 0) {
 				DOM.chartEmptyStateOverview.classList.remove('hidden');
 				DOM.overviewChart.classList.add('hidden');
-				if (_myOverviewChartInstance) _myOverviewChartInstance.destroy();
+				_myOverviewChartInstance?.destroy();
 				_myOverviewChartInstance = null;
 			} else {
 				DOM.chartEmptyStateOverview.classList.add('hidden');
@@ -2514,8 +2444,7 @@
 							}]
 						},
 						options: {
-							responsive: true,
-							maintainAspectRatio: false,
+							responsive: true, maintainAspectRatio: false,
 							plugins: {
 								legend: { position: 'top' },
 								title: { display: true, text: L('vis_nested_pie_overview') },
@@ -2545,7 +2474,7 @@
 			if (labelsExpenses.length === 0) {
 				DOM.chartEmptyState.classList.remove('hidden');
 				DOM.categoriesChart.classList.add('hidden');
-				if (_myChartInstance) _myChartInstance.destroy();
+				_myChartInstance?.destroy();
 				_myChartInstance = null;
 			} else {
 				DOM.chartEmptyState.classList.add('hidden');
@@ -2572,8 +2501,7 @@
 							}]
 						},
 						options: {
-							responsive: true,
-							maintainAspectRatio: false,
+							responsive: true, maintainAspectRatio: false,
 							plugins: {
 								legend: { position: 'top', labels: { boxWidth: 8, boxHeight: 8, padding: 3 } },
 								title: { display: true, text: title },
@@ -2600,93 +2528,45 @@
 			let title = L('vis_tab_lines');
 
 			if (isCustom) {
-				// Custom view fuer Top Kategorien
 				labels = lineChartData.labels;
 				datasets = lineChartData.datasets;
 				title = 'Kategorien'; 
 			} else {
-				// hole Daten 
-				const { 
-					labels: lineChartLabels, 
-					incomeData, 
-					fixedData, 
-					varData,               
-					totalMonthlyExpenseData, 
-					balanceData   
-				} = lineChartData;
-				
-				// console.log("Debug: varData length: ", varData?.length);
-
+				const { labels: lineChartLabels, incomeData, fixedData, varData, totalMonthlyExpenseData, balanceData } = lineChartData;
 				labels = lineChartLabels;
 				datasets = [
-					{ // Einnahmen
-						label: L('vis_summary_income'), 
-						data: incomeData, 
-						borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, 
-						backgroundColor: 'rgba(16, 185, 129, 0.2)', 
-						fill: true, 
-						tension: 0.2, 
-						yAxisID: 'y' 
-					},
-					{ // variable Ausgaben
-						label: L('vis_nested_variable'), 
-						data: varData,
-						borderColor: DOM.CHART_COLORS[0], 
-						backgroundColor: 'rgba(255, 99, 132, 0.2)', 
-						fill: true, 
-						tension: 0.2, 
-						yAxisID: 'y' 
-					},
-					{ // fixe
-						label: L('vis_nested_fixed'), 
-						data: fixedData, 
-						borderColor: DOM.CHART_COLORS[4], 
-						backgroundColor: 'rgba(153, 102, 255, 0.2)', 
-						fill: true, 
-						tension: 0.2, 
-						yAxisID: 'y' 
-					},
-					{ // beide Ausgaben
-						label: L('vis_summary_expenses'),
-						data: totalMonthlyExpenseData,
-						borderColor: '#F59E0B', 
-						backgroundColor: 'rgba(245, 158, 11, 0.1)', 
-						fill: false,
-						tension: 0.1,
-						yAxisID: 'y' 
-					},
-					// Saldo Linienchart
-					{
-						label: L('vis_summary_balance'),
-						data: balanceData, // Und hier balanceData
-						borderColor: '#37A151', 
-						backgroundColor: 'rgba(55, 65, 81, 0.1)',
-						fill: false,
-						borderWidth: 2,
-						//borderDash: [5, 5], // Gestrichelt damits distinct aussieht
-						tension: 0.1,
-						yAxisID: 'y'
-					}
+					// Einnahmen
+					{ label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+					// Vari Ausgaben
+					{ label: L('vis_nested_variable'), data: varData, borderColor: DOM.CHART_COLORS[0], backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+					// Fixe Augaben
+					{ label: L('vis_nested_fixed'), data: fixedData, borderColor: DOM.CHART_COLORS[4], backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+					// Kumu Ausgaben
+					{ label: L('vis_summary_expenses'), data: totalMonthlyExpenseData, borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: false, tension: 0.1, yAxisID: 'y' },
+					// Saldo
+					{ label: L('vis_summary_balance'), data: balanceData, borderColor: '#37A151', backgroundColor: 'rgba(55, 65, 81, 0.1)', fill: false, borderWidth: 2, tension: 0.1, yAxisID: 'y' }
 				];
 			}
 
-			// keine Daten - Fehler ausgeben
+			// Keine Daten Error Handling
 			if (labels.length === 0 || (isCustom && datasets.length === 0)) {
 				DOM.chartEmptyStateLines.classList.remove('hidden');
 				DOM.lineChartCanvas.classList.add('hidden');
 				
-				DOM.chartEmptyStateLines.querySelector('p').textContent = isCustom ? 'Keine Daten für gewählte Kategorien' : L('vis_chart_lines_empty');
-				DOM.chartEmptyStateLines.querySelector('.text-sm').textContent = isCustom ? 'Bitte Eingabe prüfen oder Zeitraum ändern.' : 'Bitte Zeitraum prüfen.';
-
-				if (_myLineChartInstance) _myLineChartInstance.destroy();
+				const msg = isCustom 
+					? (_selectedTopCategories.size === 0 ? "Bitte Kategorien rechts auswählen." : "Keine Daten für Auswahl.") 
+					: L('vis_chart_lines_empty');
+					
+				DOM.chartEmptyStateLines.querySelector('p').textContent = msg;
+				
+				_myLineChartInstance?.destroy();
 				_myLineChartInstance = null;
 			} else {
-				// Chart area anzeigen
 				DOM.chartEmptyStateLines.classList.add('hidden');
 				DOM.lineChartCanvas.classList.remove('hidden');
 
 				if (_myLineChartInstance) { 
-					// Update existing Chart
+				// Update existing Chart
 					_myLineChartInstance.data.labels = labels;
 					_myLineChartInstance.data.datasets = datasets;
 					_myLineChartInstance.options.plugins.title.text = title;
@@ -2694,20 +2574,18 @@
 					_myLineChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
 					_myLineChartInstance.update();
 				} else { 
-					// New Chart erstellen
+				// New Chart
 					const ctxLine = DOM.lineChartCanvas.getContext('2d');
 					_myLineChartInstance = new Chart(ctxLine, {
 						type: 'line',
 						data: { labels: labels, datasets: datasets },
 						options: {
-							responsive: true,
-							maintainAspectRatio: false,
+							responsive: true, maintainAspectRatio: false,
 							plugins: {
 								title: { display: true, text: title },
 								legend: { labels: { font: { size: isCustom ? 10 : 12 }, boxWidth: 8, boxHeight: 8 } },
 								tooltip: {
-									mode: 'index',
-									intersect: false,
+									mode: 'index', intersect: false,
 									callbacks: {
 										label: function(context) {
 											let label = context.dataset.label || '';
@@ -2739,11 +2617,9 @@
 				DOM.chartEmptyStateScatter.classList.remove('hidden');
 				const pTitle = DOM.chartEmptyStateScatter.querySelector('p.text-xl') || DOM.chartEmptyStateScatter.querySelector('p');
 				if (pTitle) pTitle.textContent = L('vis_scatter_empty'); 
-				const pSub = DOM.chartEmptyStateScatter.querySelector('p.text-sm');
-				if (pSub) pSub.textContent = L('vis_scatter_empty_sub');
-
+				
 				DOM.scatterChartCanvas.classList.add('hidden');
-				if (_myScatterChartInstance) _myScatterChartInstance.destroy();
+				_myScatterChartInstance?.destroy();
 				_myScatterChartInstance = null;
 			} else {
 				DOM.chartEmptyStateScatter.classList.add('hidden');
@@ -2760,56 +2636,35 @@
 						type: 'scatter',
 						data: {
 							datasets: [{
-								label: L('vis_summary_expenses'),
-								data: data,
-								backgroundColor: 'rgba(255, 99, 132, 0.7)', 
-								borderColor: 'rgba(255, 99, 132, 1)',
-								borderWidth: 1,
-								pointRadius: 5,
-								pointHoverRadius: 8
+								label: L('vis_summary_expenses'), data: data, backgroundColor: 'rgba(255, 99, 132, 0.7)', 
+								borderColor: 'rgba(255, 99, 132, 1)', borderWidth: 1, pointRadius: 5, pointHoverRadius: 8
 							}]
 						},
 						options: {
-							responsive: true,
-							maintainAspectRatio: false,
+							responsive: true, maintainAspectRatio: false,
 							plugins: {
-								legend: { display: false }, 
-								title: { display: true, text: title },
+								legend: { display: false }, title: { display: true, text: title },
 								tooltip: {
 									callbacks: {
 										label: function(context) {
 											const raw = context.raw;
 											const date = new Date(raw.x);
-											const dateString = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 											const purpose = raw.label || L('tooltip_unknown'); 
 											const value = raw.y || 0;
-											const valueString = `${value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentCurrency}`;
-											return `${dateString} - ${valueString} (${purpose})`;
+											return `${date.toLocaleDateString('de-DE')} - ${value.toLocaleString('de-DE', { minimumFractionDigits: 2 })} ${currentCurrency} (${purpose})`;
 										}
 									}
 								}
 							},
 							scales: {
-								x: {
-									type: 'linear', 
-									title: { display: true, text: L('Buchungstag') },
-									ticks: {
-										callback: function(value) {
-											return new Date(value).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-										}
-									}
-								},
-								y: {
-									beginAtZero: true,
-									title: { display: true, text: L('Betrag') + ` (${currentCurrency})` }
-								}
+								x: { type: 'linear', title: { display: true, text: L('Buchungstag') }, ticks: { callback: function(value) { return new Date(value).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }); } } },
+								y: { beginAtZero: true, title: { display: true, text: L('Betrag') + ` (${currentCurrency})` } }
 							}
 						}
 					});
 				}
 			}
 		}
-
 		
 		function _handleEmptyData() {
 			_destroyCharts();
@@ -2863,8 +2718,8 @@
 				DOM.dateStart.value = '';
 				DOM.dateEnd.value = '';
 				
-				// State Reset für die Line Buttons
 				_actLinMode = 'all';
+				_selectedTopCategories.clear();
 				_updLinTogBtns();
 			},
 			
