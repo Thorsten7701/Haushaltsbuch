@@ -3,7 +3,7 @@ Household budget (see below for english version)
 Cloudless. Anti bloat. Portable. Intuitive. Your data stays on your disk.
 
 ## LiveDemo: https://thorsten7701.github.io/Haushaltsbuch/Haushaltsbuch.html
-play with it: 	dummy.json 
+play with it: 	dummy.json	 Download: https://github.com/Thorsten7701/Haushaltsbuch/archive/refs/heads/home.zip
 or see the wiki: https://github.com/Thorsten7701/Haushaltsbuch/wiki
 
 Bei meiner Suche nach einer Haushaltsbuch App musste ich enttäuscht feststellen, dass keine meinen Anforderungen entsprach.

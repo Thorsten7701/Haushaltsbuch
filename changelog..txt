@@ -5,8 +5,7 @@ Store: Use data caching to improve performance.
 Fix table data import + syncing issues. use local cellEdited callbacks
 Fix negative numbers enclosed in parentheses and use BOM encoding for Excel.
 Fix CSV Dates offbyOne Err use getters instead of toIsoString, dont allow rule dupes
-Visuals: Added "top" logic + Income, Variable, Fixed expenses and Balance details view.
+Visuals: Added "top10" logic + Income, Variable, Fixed expenses and Balance details view.
 Apply and delete all categorization rules.
-"smooth" Shift misdated fixed costs from month end (< 3 days) to the next month
 csv Import now appends to existing Data if possible, load session allows for only loading Rules.
 --------------------------
