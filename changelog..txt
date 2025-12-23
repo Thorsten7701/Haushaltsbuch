@@ -2,9 +2,9 @@
 
 B45
 Store: Use data caching to improve performance.
-Fix: table data import + syncing issues. use local cellEdited callbacks
+Fix table data import + syncing issues. use local cellEdited callbacks
 Fix negative numbers enclosed in parentheses and use BOM encoding for Excel.
-Fix dont allow rule dupes
+Fix CSV Dates offbyOne Err use getters instead of toIsoString, dont allow rule dupes
 Visuals: Added "top" logic + Income, Variable, Fixed expenses and Balance details view.
 Apply and delete all categorization rules.
 "smooth" Shift misdated fixed costs from month end (< 3 days) to the next month

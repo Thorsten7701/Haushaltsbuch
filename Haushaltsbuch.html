@@ -1376,12 +1376,12 @@
 	 * @description Verwaltet die Haupt Daten Tabelle (Tabulator) und die Regel UI.
 	 */
 	const CategorizeModule = (function() {
-		let _tableInstance = null;
+		let _tableInst = null;
 		let _isInitialized = false;
 		let _tableReadyPromise = null;
 
 		function _initTable(data) {
-			if (_tableInstance) _tableInstance.destroy();
+			if (_tableInst) _tableInst.destroy();
 			
 			DOM.emptyState.classList.add('hidden');
 			const { currentCurrency } = Store.getState();
@@ -1465,7 +1465,7 @@
 			if (dataKeys.includes('Fixkosten')) columns.push({ ...knownColumns['Fixkosten'], field: 'Fixkosten' });
 
 			_tableReadyPromise = new Promise((resolve) => {
-				_tableInstance = new Tabulator("#data-table", {
+				_tableInst = new Tabulator("#data-table", {
 					data: data,
 					layout: "fitColumns",
 					height: "100%",
@@ -1533,11 +1533,11 @@
 			_updateMatchCountAndButtonState();
 			const searchTerm = DOM.ruleSearch.value.trim();
 			
-			if (_tableInstance) {
+			if (_tableInst) {
 				if (searchTerm.length > 0) {
-					_tableInstance.setFilter("Verwendungszweck", "like", searchTerm);
+					_tableInst.setFilter("Verwendungszweck", "like", searchTerm);
 				} else {
-					_tableInstance.clearFilter();
+					_tableInst.clearFilter();
 				}
 			}
 		}
@@ -1594,9 +1594,9 @@
 			DOM.ruleCategory.value = ''; 
 			DOM.ruleFixcostChk.checked = false;
 			
-			if (_tableInstance && _tableReadyPromise) {
+			if (_tableInst && _tableReadyPromise) {
 				await _tableReadyPromise; 
-				_tableInstance.clearFilter();
+				_tableInst.clearFilter();
 			}
 			
 			_updateMatchCountAndButtonState();
@@ -1609,9 +1609,9 @@
 			const totalAffected = Store.applyAllRules(); 
 			Utils.showStatus("msg_rules_applied", 'success', totalAffected);
 			
-			if (_tableInstance && _tableReadyPromise) {
+			if (_tableInst && _tableReadyPromise) {
 				await _tableReadyPromise;
-				_tableInstance.clearFilter();
+				_tableInst.clearFilter();
 			}
 		}
 
@@ -1671,9 +1671,9 @@
 				if (hasData) {
 					_initTable(state.tableData);
 				} else {
-					if (_tableInstance) {
-						_tableInstance.destroy();
-						_tableInstance = null;
+					if (_tableInst) {
+						_tableInst.destroy();
+						_tableInst = null;
 						_tableReadyPromise = null;
 					}
 					DOM.emptyState.classList.remove('hidden');
@@ -1697,9 +1697,9 @@
 			},
 			
 			destroy: function() {
-				if (_tableInstance) {
-					_tableInstance.destroy();
-					_tableInstance = null;
+				if (_tableInst) {
+					_tableInst.destroy();
+					_tableInst = null;
 				}
 				_tableReadyPromise = null; 
 				DOM.emptyState.classList.remove('hidden');
@@ -1746,14 +1746,14 @@
 	 * @description Verwaltet die Visualisierungs Seite (Chart.js, Datumsfilter, Detail Tabellen).
 	 */
 	const VisualizeModule = (function() {
-		let _myChartInstance = null; 
-		let _myOverviewChartInstance = null; 
-		let _myLineChartInstance = null; 
-		let _myScatterChartInstance = null; 
+		let _myChartInst = null; 
+		let _myOverviewChartInst = null; 
+		let _myLineChartInst = null; 
+		let _myScatterChartInst = null; 
 		
-		let _einnahmenTableInstance = null;
-		let _variableAusgabenTableInstance = null;
-		let _fixeAusgabenTableInstance = null
+		let _einnahmenTableInst = null;
+		let _variableAusgabenTableInst = null;
+		let _fixeAusgabenTableInst = null
 		let _isInitialized = false;
 		
 		let _activeOverviewTab = 'overview';
@@ -1762,6 +1762,9 @@
 
 		// State für die Top-Auswahl (Set verhindert Dubletten automatisch)
 		let _selectedTopCategories = new Set();
+		
+		// Übertrage die gewählte TOP10 Listbox Farbe ins Diagramm 
+		let _topCatColors = {}; 
 
 		let _einnahmenTableReadyPromise = null;
 		let _variableAusgabenTableReadyPromise = null;
@@ -1781,28 +1784,28 @@
 		}
 
 		function _destroyCharts() {
-			_myChartInstance?.destroy();
-			_myChartInstance = null;
+			_myChartInst?.destroy();
+			_myChartInst = null;
 			
-			_myOverviewChartInstance?.destroy();
-			_myOverviewChartInstance = null;
+			_myOverviewChartInst?.destroy();
+			_myOverviewChartInst = null;
 			
-			_myLineChartInstance?.destroy();
-			_myLineChartInstance = null;
+			_myLineChartInst?.destroy();
+			_myLineChartInst = null;
 			
-			_myScatterChartInstance?.destroy();
-			_myScatterChartInstance = null;
+			_myScatterChartInst?.destroy();
+			_myScatterChartInst = null;
 		}
 
 		function _destroyDetailTables() {
-			_einnahmenTableInstance?.destroy();
-			_einnahmenTableInstance = null;
+			_einnahmenTableInst?.destroy();
+			_einnahmenTableInst = null;
 			
-			_variableAusgabenTableInstance?.destroy();
-			_variableAusgabenTableInstance = null;
+			_variableAusgabenTableInst?.destroy();
+			_variableAusgabenTableInst = null;
 			
-			_fixeAusgabenTableInstance?.destroy();
-			_fixeAusgabenTableInstance = null;
+			_fixeAusgabenTableInst?.destroy();
+			_fixeAusgabenTableInst = null;
 			
 			_einnahmenTableReadyPromise = null;
 			_variableAusgabenTableReadyPromise = null;
@@ -1955,9 +1958,9 @@
 
 		async function _updateEinnahmenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_einnahmenTableInstance) { _einnahmenTableInstance.destroy(); _einnahmenTableInstance = null; }
+			if (_einnahmenTableInst) { _einnahmenTableInst.destroy(); _einnahmenTableInst = null; }
 			_einnahmenTableReadyPromise = new Promise((resolve) => {
-				_einnahmenTableInstance = new Tabulator(DOM.einnahmenTableEl, {
+				_einnahmenTableInst = new Tabulator(DOM.einnahmenTableEl, {
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_income"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
@@ -1975,9 +1978,9 @@
 		
 		async function _updateVariableAusgabenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_variableAusgabenTableInstance) { _variableAusgabenTableInstance.destroy(); _variableAusgabenTableInstance = null; }
+			if (_variableAusgabenTableInst) { _variableAusgabenTableInst.destroy(); _variableAusgabenTableInst = null; }
 			_variableAusgabenTableReadyPromise = new Promise((resolve) => {
-				_variableAusgabenTableInstance = new Tabulator(DOM.variableAusgabenTableEl, {
+				_variableAusgabenTableInst = new Tabulator(DOM.variableAusgabenTableEl, {
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_variable"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
@@ -1998,9 +2001,9 @@
 		
 		async function _updateFixeAusgabenTable(data) {
 			const { currentCurrency } = Store.getState();
-			if (_fixeAusgabenTableInstance) { _fixeAusgabenTableInstance.destroy(); _fixeAusgabenTableInstance = null; }
+			if (_fixeAusgabenTableInst) { _fixeAusgabenTableInst.destroy(); _fixeAusgabenTableInst = null; }
 			_fixeAusgabenTableReadyPromise = new Promise((resolve) => {
-				_fixeAusgabenTableInstance = new Tabulator(DOM.fixeAusgabenTableEl, {
+				_fixeAusgabenTableInst = new Tabulator(DOM.fixeAusgabenTableEl, {
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_fixed"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
@@ -2038,7 +2041,7 @@
 		}
 
 
-function _calculateAndRenderTopListbox(filteredData) {
+		function _calculateAndRenderTopListbox(filteredData) {
 			const categoryTotals = {};
 			// Summen pro Kategorie
 			
@@ -2046,7 +2049,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 				if (row.Betrag < 0 && !row.Fixkosten) {
 					const category = (row.Kategorie || '').trim().toLowerCase();
 					if (!category) return;
-					categoryTotals[category] = (categoryTotals[category] || 0) + Math.abs(row.Betrag);
+					categoryTotals[category] = (categoryTotals[category] ?? 0) + Math.abs(row.Betrag);
 				}
 			});
 
@@ -2059,6 +2062,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 			// Listbox füllen			
 			const container = DOM.lineChartLegendContent;
 			container.innerHTML = '';
+			_topCatColors = {};
 			
 			if (topCategories.length === 0) {
 				container.innerHTML = `<div class="text-xs text-gray-400 text-center italic p-2">Keine Daten</div>`;
@@ -2071,7 +2075,11 @@ function _calculateAndRenderTopListbox(filteredData) {
 				
 				// lade häkchen aus store
 				const isChecked = _selectedTopCategories.has(cat);
-				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+				
+				// Farbe für später im Diagramm speichern
+				const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];				
+				_topCatColors[cat] = color;
+				
 				// Farbindikator für die Legende				
 				const colorBox = `<span class="w-2 h-2 rounded-full inline-block" style="background-color: ${color};"></span>`;
 				
@@ -2083,7 +2091,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 				`;
 		
 				// Event Listener für Liveupdate				
-				div.querySelector('input').addEventListener('change', (e) => {
+				div.querySelector('input')?.addEventListener('change', (e) => {
 					if (e.target.checked) {
 						_selectedTopCategories.add(cat);
 					} else {
@@ -2232,7 +2240,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 			let cumExpense = 0;
 
 			sortedMonths.forEach(k => {
-				const mData = monthlyData[k] || { income: 0, fixed: 0, variable: 0 };
+				const mData = monthlyData[k] ?? { income: 0, fixed: 0, variable: 0 };
 				const inc = mData.income;
 				const fix = mData.fixed;
 				const vari = mData.variable;
@@ -2255,7 +2263,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 			};
 			
 			// TopX Line Data Sets bauen
-			const customLineChartDatasets = [];
+			const topLineChartDatasets = [];
 			
 			if (customCategories && customCategories.length > 0) {
 				customCategories.forEach((category, index) => {
@@ -2263,9 +2271,10 @@ function _calculateAndRenderTopListbox(filteredData) {
 						return customMonthlyData[month]?.[category] ?? 0;
 					});
 			
-					const color = DOM.CHART_COLORS[index % DOM.CHART_COLORS.length];
+					// Nutze Farbe aus der top10 Listbox
+					const color = _topCatColors[category] 
 					
-					customLineChartDatasets.push({
+					topLineChartDatasets.push({
 						label: category, 
 						data: data,
 						borderColor: color,
@@ -2278,7 +2287,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 
 			return {
 				lineChart: lineChartData,
-				customLineChart: { labels: sortedMonths, datasets: customLineChartDatasets }
+				topLineChart: { labels: sortedMonths, datasets: topLineChartDatasets }
 			};
 		}
 
@@ -2289,7 +2298,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 			const aggResult = _aggregateData(filteredData, customCategories);
 			
 			if (!aggResult) {
-				return { summary: {}, details: {}, expensePie: {}, overviewPie: {}, lineChart: {}, customLineChart: {}, scatterPlot: {} };
+				return { summary: {}, details: {}, expensePie: {}, overviewPie: {}, lineChart: {}, topLineChart: {}, scatterPlot: {} };
 			}
 
 			const { einnahmenData, variableAusgabenData, fixeAusgabenData, scatterData, monthlyData, customMonthlyData, uniqueMonths, totals } = aggResult;
@@ -2307,7 +2316,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 				expensePie: pieData.expensePie,
 				overviewPie: pieData.overviewPie,
 				lineChart: lineData.lineChart,
-				customLineChart: lineData.customLineChart,
+				topLineChart: lineData.topLineChart,
 				scatterPlot: { data: scatterData }
 			};
 		}
@@ -2319,16 +2328,16 @@ function _calculateAndRenderTopListbox(filteredData) {
 				DOM.overviewChartContainer.classList.add('hidden');
 				DOM.categoriesChartContainer.classList.remove('hidden');
 				
-				_myOverviewChartInstance?.destroy();
-				_myOverviewChartInstance = null;
+				_myOverviewChartInst?.destroy();
+				_myOverviewChartInst = null;
 
 				_updateCategoriesPieChart(processedData.expensePie, currentCurrency);
 			} else {
 				DOM.overviewChartContainer.classList.remove('hidden');
 				DOM.categoriesChartContainer.classList.add('hidden');
 				
-				_myChartInstance?.destroy();
-				_myChartInstance = null;
+				_myChartInst?.destroy();
+				_myChartInst = null;
 
 				_updateOverviewPieChart(processedData.overviewPie, currentCurrency);
 			}
@@ -2338,7 +2347,7 @@ function _calculateAndRenderTopListbox(filteredData) {
 			if (DOM.visContentLines.classList.contains('hidden')) return;
 
 			if (isCustomChart) {
-				_updateLineChart(processedData.customLineChart, currentCurrency, true);
+				_updateLineChart(processedData.topLineChart, currentCurrency, true);
 			} else {
 				_updateLineChart(processedData.lineChart, currentCurrency, false); 
 			}
@@ -2423,20 +2432,20 @@ function _calculateAndRenderTopListbox(filteredData) {
 			if (totalIncome === 0 && totalFixedExpenses === 0 && totalVariableExpenses === 0) {
 				DOM.chartEmptyStateOverview.classList.remove('hidden');
 				DOM.overviewChart.classList.add('hidden');
-				_myOverviewChartInstance?.destroy();
-				_myOverviewChartInstance = null;
+				_myOverviewChartInst?.destroy();
+				_myOverviewChartInst = null;
 			} else {
 				DOM.chartEmptyStateOverview.classList.add('hidden');
 				DOM.overviewChart.classList.remove('hidden');
 
-				if (_myOverviewChartInstance) { 
-					_myOverviewChartInstance.data.labels = labelsOverview;
-					_myOverviewChartInstance.data.datasets[0].data = dataOverview;
-					_myOverviewChartInstance.options.plugins.title.text = L('vis_nested_pie_overview');
-					_myOverviewChartInstance.update();
+				if (_myOverviewChartInst) { 
+					_myOverviewChartInst.data.labels = labelsOverview;
+					_myOverviewChartInst.data.datasets[0].data = dataOverview;
+					_myOverviewChartInst.options.plugins.title.text = L('vis_nested_pie_overview');
+					_myOverviewChartInst.update();
 				} else { 
 					const ctxOverview = DOM.overviewChart.getContext('2d');
-					_myOverviewChartInstance = new Chart(ctxOverview, {
+					_myOverviewChartInst = new Chart(ctxOverview, {
 						type: 'pie',
 						data: {
 							labels: labelsOverview,
@@ -2479,21 +2488,21 @@ function _calculateAndRenderTopListbox(filteredData) {
 			if (labelsExpenses.length === 0) {
 				DOM.chartEmptyState.classList.remove('hidden');
 				DOM.categoriesChart.classList.add('hidden');
-				_myChartInstance?.destroy();
-				_myChartInstance = null;
+				_myChartInst?.destroy();
+				_myChartInst = null;
 			} else {
 				DOM.chartEmptyState.classList.add('hidden');
 				DOM.categoriesChart.classList.remove('hidden');
 
-				if (_myChartInstance) { 
-					_myChartInstance.data.labels = labelsExpenses;
-					_myChartInstance.data.datasets[0].data = dataExpenses;
-					_myChartInstance.data.datasets[0].label = L('vis_summary_expenses');
-					_myChartInstance.options.plugins.title.text = title;
-					_myChartInstance.update();
+				if (_myChartInst) { 
+					_myChartInst.data.labels = labelsExpenses;
+					_myChartInst.data.datasets[0].data = dataExpenses;
+					_myChartInst.data.datasets[0].label = L('vis_summary_expenses');
+					_myChartInst.options.plugins.title.text = title;
+					_myChartInst.update();
 				} else { 
 					const ctx = DOM.categoriesChart.getContext('2d');
-					_myChartInstance = new Chart(ctx, {
+					_myChartInst = new Chart(ctx, {
 						type: 'pie',
 						data: {
 							labels: labelsExpenses,
@@ -2564,24 +2573,24 @@ function _calculateAndRenderTopListbox(filteredData) {
 					
 				DOM.chartEmptyStateLines.querySelector('p').textContent = msg;
 				
-				_myLineChartInstance?.destroy();
-				_myLineChartInstance = null;
+				_myLineChartInst?.destroy();
+				_myLineChartInst = null;
 			} else {
 				DOM.chartEmptyStateLines.classList.add('hidden');
 				DOM.lineChartCanvas.classList.remove('hidden');
 
-				if (_myLineChartInstance) { 
+				if (_myLineChartInst) { 
 				// Update existing Chart
-					_myLineChartInstance.data.labels = labels;
-					_myLineChartInstance.data.datasets = datasets;
-					_myLineChartInstance.options.plugins.title.text = title;
-					_myLineChartInstance.options.plugins.legend.labels.font.size = isCustom ? 10 : 12;
-					_myLineChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
-					_myLineChartInstance.update();
+					_myLineChartInst.data.labels = labels;
+					_myLineChartInst.data.datasets = datasets;
+					_myLineChartInst.options.plugins.title.text = title;
+					_myLineChartInst.options.plugins.legend.labels.font.size = isCustom ? 10 : 12;
+					_myLineChartInst.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
+					_myLineChartInst.update();
 				} else { 
 				// New Chart
 					const ctxLine = DOM.lineChartCanvas.getContext('2d');
-					_myLineChartInstance = new Chart(ctxLine, {
+					_myLineChartInst = new Chart(ctxLine, {
 						type: 'line',
 						data: { labels: labels, datasets: datasets },
 						options: {
@@ -2624,20 +2633,20 @@ function _calculateAndRenderTopListbox(filteredData) {
 				if (pTitle) pTitle.textContent = L('vis_scatter_empty'); 
 				
 				DOM.scatterChartCanvas.classList.add('hidden');
-				_myScatterChartInstance?.destroy();
-				_myScatterChartInstance = null;
+				_myScatterChartInst?.destroy();
+				_myScatterChartInst = null;
 			} else {
 				DOM.chartEmptyStateScatter.classList.add('hidden');
 				DOM.scatterChartCanvas.classList.remove('hidden');
 
-				if (_myScatterChartInstance) { 
-					_myScatterChartInstance.data.datasets[0].data = data;
-					_myScatterChartInstance.options.plugins.title.text = title; 
-					_myScatterChartInstance.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
-					_myScatterChartInstance.update();
+				if (_myScatterChartInst) { 
+					_myScatterChartInst.data.datasets[0].data = data;
+					_myScatterChartInst.options.plugins.title.text = title; 
+					_myScatterChartInst.options.scales.y.title.text = L('Betrag') + ` (${currentCurrency})`;
+					_myScatterChartInst.update();
 				} else { 
 					const ctxScatter = DOM.scatterChartCanvas.getContext('2d');
-					_myScatterChartInstance = new Chart(ctxScatter, {
+					_myScatterChartInst = new Chart(ctxScatter, {
 						type: 'scatter',
 						data: {
 							datasets: [{
