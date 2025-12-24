@@ -1829,7 +1829,7 @@
 			if (maxDate) DOM.dateEnd.value = Utils.formatDateForInput(maxDate);
 		}
 
-		async function showTab(tabName) {
+		async function showTab(tabName, initialSubTab = 'einnahmen') {
 			DOM.visPieContentOverview.classList.add('hidden');
 			DOM.visContentDetails.classList.add('hidden');
 			DOM.visContentLines.classList.add('hidden');
@@ -1848,14 +1848,7 @@
 			} else if (tabName === 'details') {
 				DOM.visContentDetails.classList.remove('hidden');
 				DOM.visTabDetails.classList.add('active');
-				
-				_activeDetailTab = 'einnahmen';
-				DOM.visContentEinnahmen.classList.remove('hidden');
-				DOM.visContentVariAusg.classList.add('hidden');
-				DOM.visContentFixeAusg.classList.add('hidden');
-				DOM.visTabEinnahmen.classList.add('active');
-				DOM.visTabVariAusg.classList.remove('active');
-				DOM.visTabFixeAusg.classList.remove('active');
+				await _handleNestedTabClick(initialSubTab);
 
 			} else if (tabName === 'lines') {
 				DOM.visContentLines.classList.remove('hidden');
@@ -2686,6 +2679,19 @@
 			DOM.summaryDisplay.classList.add('hidden');
 		}
 
+		// dblclick in top10 springt zum vari Ausgaben DetailView 
+		async function _handleLineDblClick(e) {
+			if (!_myLineChartInst || _actLinMode !== 'top') return;
+
+			const points = _myLineChartInst.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+			if (points.length) {
+				const datasetIndex = points[0].datasetIndex;
+				const catName = _myLineChartInst.data.datasets[datasetIndex].label;
+				 console.log("Debug: dbl click detected on", catName);
+				await showTab('details', 'variable');
+			}
+		}
+
 		return {
 			init: function() {
 				if (_isInitialized) return;
@@ -2694,6 +2700,7 @@
 				DOM.dateEnd.addEventListener('change', updateChart);
 				DOM.visLinesAllBtn.addEventListener('click', () => _handLinTog('all'));
 				DOM.visLinesTopBtn.addEventListener('click', () => _handLinTog('top'));
+				DOM.lineChartCanvas.addEventListener('dblclick', _handleLineDblClick);
 
 				DOM.visTabPie.addEventListener('click', () => showTab('overview'));
 				DOM.visTabDetails.addEventListener('click', () => showTab('details'));
