@@ -717,10 +717,6 @@
 		 */
 		function showConfirmationModal(titleKey, messageKey, confirmTextKey = 'modal_btn_confirm', args = [], isInfo = false) {
 			return new Promise(resolve => {
-				if (!titleKey || !messageKey) {
-					resolve(false)
-					return
-				}
 				DOM.modalTitle.textContent = L(titleKey);
 				DOM.modalMessage.innerHTML = L(messageKey, ...args);
 				DOM.modalConfirmBtn.textContent = L(confirmTextKey);
@@ -1000,11 +996,6 @@
 			},
 			
 			updateTableDataField: function(rowId, field, newValue) {
-				if (!rowId && rowId !== 0) {
-				      // console.error("Update aborted: invalid rowId", rowId);
-					return;
-				}
-
 				const index = _state.tableData.findIndex(row => row.id == rowId);
 
 				if (index !== -1) {
@@ -1025,7 +1016,6 @@
 					
 					_state.tableData[index] = updatedRow;
 					_emit('data_changed'); 
-					
 				} else {
 					// Edge Case: Tabulator hat noch die alte ID, aber der State ist schon updated.
 					console.log("Debug: Store update failed, rowId not found in current state", rowId);
@@ -1077,8 +1067,6 @@
 			},
 			
 			addRule: function(search, category, isFixkosten) {
-				if (!search || !category) return;
-				
 				const exists = _state.savedRules.some(r => r.search === search && r.category === category && r.isFixkosten === isFixkosten);
 				
 				if (!exists) {
@@ -1092,8 +1080,6 @@
 			},
 			
 			deleteRule: function(index) {
-				if (index < 0 || index >= _state.savedRules.length) return;
-				
 				_state.savedRules.splice(index, 1);
 				
 				const totalAffected = this.applyAllRules(true); 
@@ -1235,6 +1221,10 @@
 			MainController.showPage('import'); 
 		}
 
+		/**
+		 * Merged die Staging Daten in den Store
+		 * appliziert automatisch die Regeln 
+		 */
 		function _finishImportProcess() {
 			// Wenn Kategorie oder Fixkosten im csv, nutze sie.
 			const csvCatHeader = _pendingHeaders.find(h => h.toLowerCase() === 'kategorie');
@@ -1380,6 +1370,10 @@
 		let _isInitialized = false;
 		let _tableReadyPromise = null;
 
+		/**
+		 * Initialisiert die Tabulator Instanz
+		 * lokale cell Events wegen data sync bugs
+		 */
 		function _initTable(data) {
 			if (_tableInst) _tableInst.destroy();
 			
@@ -1639,8 +1633,6 @@
 			const { savedRules } = Store.getState();
 			const rule = savedRules[index];
 
-			if (!rule) return;
-
 			const isConfirmed = await Utils.showConfirmationModal(
 				"confirm_delete_rule_title",
 				"confirm_delete_rule_message",
@@ -1830,32 +1822,31 @@
 		}
 
 		async function showTab(tabName, initialSubTab = 'einnahmen') {
-			DOM.visPieContentOverview.classList.add('hidden');
-			DOM.visContentDetails.classList.add('hidden');
-			DOM.visContentLines.classList.add('hidden');
-			DOM.visContentScatter.classList.add('hidden');
+			const tabs = [
+				{ name: 'overview', btn: DOM.visTabPie, content: DOM.visPieContentOverview },
+				{ name: 'details', btn: DOM.visTabDetails, content: DOM.visContentDetails },
+				{ name: 'lines', btn: DOM.visTabLines, content: DOM.visContentLines },
+				{ name: 'scatter', btn: DOM.visTabScatter, content: DOM.visContentScatter }
+			];
+
+			// Alles resetten
+			tabs.forEach(t => {
+				t.btn.classList.remove('active');
+				t.content.classList.add('hidden');
+			});
 			
-			DOM.visTabPie.classList.remove('active');
-			DOM.visTabDetails.classList.remove('active');
-			DOM.visTabLines.classList.remove('active');
-			DOM.visTabScatter.classList.remove('active');
+			// Tab aktivieren
+			const activeTab = tabs.find(t => t.name === tabName);
+			if(activeTab) {
+				activeTab.btn.classList.add('active');
+				activeTab.content.classList.remove('hidden');
+			}
 		   
 			if (tabName === 'overview') {
-				DOM.visPieContentOverview.classList.remove('hidden');
-				DOM.visTabPie.classList.add('active');
 				_activeOverviewTab = 'overview'; 
 				_updateToggleButtons();
 			} else if (tabName === 'details') {
-				DOM.visContentDetails.classList.remove('hidden');
-				DOM.visTabDetails.classList.add('active');
 				await _handleNestedTabClick(initialSubTab);
-
-			} else if (tabName === 'lines') {
-				DOM.visContentLines.classList.remove('hidden');
-				DOM.visTabLines.classList.add('active');
-			} else if (tabName === 'scatter') {
-				DOM.visContentScatter.classList.remove('hidden');
-				DOM.visTabScatter.classList.add('active');
 			}
 			  
 			await updateChart();
@@ -2116,8 +2107,6 @@
 		 * Aggregiert die Rohdaten und berechnet Summen für alle Charts.
 		 */
 		function _aggregateData(filteredData, customCategories = []) {
-			if (!filteredData) return null;
-
 			const einnahmenData = [];
 			const ausgabenData = [];
 			const scatterData = [];
@@ -2417,6 +2406,9 @@
 			DOM.summaryDisplay.classList.remove('hidden');
 		}
 
+		/**
+		 * Rendert Tortendiagramm Übersicht 
+		 */
 		function _updateOverviewPieChart(overviewPieData, currentCurrency) {
 			const { totalIncome, totalFixedExpenses, totalVariableExpenses } = overviewPieData;
 			const labelsOverview = [L('vis_summary_income'), L('vis_nested_fixed'), L('vis_nested_variable')];
@@ -2616,6 +2608,9 @@
 			}
 		}
 		
+		/* Erstellt Streudiagramm
+		 * Hilfreich um einzelne hohe Ausgaben schnell zu spotten
+		 */
 		function _updateScatterPlot(scatterPlotData, currentCurrency) {
 			const data = scatterPlotData.data;
 			const title = L('vis_scatter_title'); 
@@ -2755,28 +2750,43 @@
 	 * und globale Aktionen (Reset, Export, Save JSON).
 	 */
 	const MainController = (function() {
-		function showPage(pageName) {
-			DOM.pageHome.classList.add('hidden');
-			DOM.pageImport.classList.add('hidden');
-			DOM.pageLoadJson.classList.add('hidden');
-			DOM.pageCategorize.classList.add('hidden');
-			DOM.pageVisualize.classList.add('hidden');
-			
+		
+		function _updateNavState(activePage, dataLoaded) {
 			const { BASE, ACTIVE, INACTIVE, DISABLED } = DOM.NAV_STYLES;
 			
-			DOM.navHomeBtn.className = `${BASE} ${INACTIVE} flex items-center gap-2`;
+			const navs = [
+				{ id: 'home', el: DOM.navHomeBtn, page: 'home', alwaysEnabled: true },
+				{ id: 'import', el: DOM.navImportBtn, page: 'import', alwaysEnabled: true },
+				{ id: 'categorize', el: DOM.navCategorizeBtn, page: 'categorize', alwaysEnabled: false },
+				{ id: 'visualize', el: DOM.navVisualizeBtn, page: 'visualize', alwaysEnabled: false }
+			];
+
+			navs.forEach(nav => {
+				const isActive = nav.page === activePage;
+				const isEnabled = nav.alwaysEnabled || dataLoaded;
+				
+				// Style zusammenbauen
+				let style = BASE;
+				if (isActive) style += ` ${ACTIVE}`;
+				else if (isEnabled) style += ` ${INACTIVE}`;
+				else style += ` ${DISABLED}`;
+				
+				// Home Button hat extra icon
+				if (nav.id === 'home') style += " flex items-center gap-2";
+				
+				nav.el.className = style;
+				nav.el.disabled = !isEnabled;
+			});
+		}
+
+		function showPage(pageName) {
+			// Eckstein, Eckstein alles muss...
+			[DOM.pageHome, DOM.pageImport, DOM.pageLoadJson, DOM.pageCategorize, DOM.pageVisualize].forEach(el => el.classList.add('hidden'));
 			
 			const { tableData } = Store.getState();
 			const dataLoaded = tableData.length > 0;
 			
-			DOM.navImportBtn.className = `${BASE} ${INACTIVE}`;
-			DOM.navImportBtn.disabled = false;
-			
-			DOM.navCategorizeBtn.className = `${BASE} ${dataLoaded ? INACTIVE : DISABLED}`;
-			DOM.navCategorizeBtn.disabled = !dataLoaded;
-			
-			DOM.navVisualizeBtn.className = `${BASE} ${dataLoaded ? INACTIVE : DISABLED}`;
-			DOM.navVisualizeBtn.disabled = !dataLoaded;
+			_updateNavState(pageName, dataLoaded);
 
 			if (pageName === 'home') {
 				DOM.pageHome.classList.remove('hidden');
@@ -2784,36 +2794,32 @@
 
 			} else if (pageName === 'import') {
 				DOM.pageImport.classList.remove('hidden');
-				DOM.navImportBtn.className = `${BASE} ${ACTIVE}`;
 				DOM.headerNav.classList.remove('hidden');
 				DOM.headerActions.classList.remove('hidden');
 				
+				// Default state for import
+				ImportModule.init();
 				DOM.importMappingStep.classList.add('hidden');
 				DOM.importInitialStep.classList.remove('hidden');
 
 			} else if (pageName === 'loadJson') {
 				DOM.pageLoadJson.classList.remove('hidden');
-				DOM.navImportBtn.className = `${BASE} ${ACTIVE}`;
 				DOM.headerNav.classList.remove('hidden');
 				DOM.headerActions.classList.remove('hidden');
 
 			} else if (pageName === 'categorize' && dataLoaded) {
 				DOM.pageCategorize.classList.remove('hidden');
-				DOM.navCategorizeBtn.className = `${BASE} ${ACTIVE}`;
 				DOM.headerNav.classList.remove('hidden');
 				DOM.headerActions.classList.remove('hidden');
 
 			} else if (pageName === 'visualize' && dataLoaded) {
 				DOM.pageVisualize.classList.remove('hidden');
-				DOM.navVisualizeBtn.className = `${BASE} ${ACTIVE}`;
 				DOM.headerNav.classList.remove('hidden');
-				DOM.headerActions.classList.remove('hidden');
-				
+				DOM.headerActions.classList.remove('hidden');				
 				VisualizeModule.showTab('overview');
 				
-				_resetNestedTabToEinnahmen();
-				
 			} else {
+				// Fallback Home
 				DOM.pageHome.classList.remove('hidden');
 				DOM.headerActions.classList.add('hidden');
 				DOM.headerNav.classList.add('hidden');
@@ -2823,16 +2829,6 @@
 			DOM.exportBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
 			DOM.saveJsonBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
 		}
-		
-		function _resetNestedTabToEinnahmen() {
-			DOM.visContentEinnahmen.classList.remove('hidden');
-			DOM.visContentVariAusg.classList.add('hidden');
-			DOM.visContentFixeAusg.classList.add('hidden');
-			DOM.visTabEinnahmen.classList.add('active');
-			DOM.visTabVariAusg.classList.remove('active');
-			DOM.visTabFixeAusg.classList.remove('active');
-		}
-
 
 		async function _handleReset() {
 			const isConfirmed = await Utils.showConfirmationModal(
