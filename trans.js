@@ -1,7 +1,6 @@
 // + Internationalisierung +
 
-// window.currentLocaleKey = 'de'; // by now also: en , fr , es 
-window.currentLocaleKey = 'en'; 
+window.currentLocaleKey = window.currentLocaleKey || 'en';  // by now : de, en , fr , es
 window.currency="€";
 
 const locales = {
@@ -547,16 +546,20 @@ const locales = {
 	}
 };
 
-// Helper function for localization lookup (L for Lookup or Locale)
+// Helper function for translations
 window.L = function(key, ...args) {
-	const locale = locales[currentLocaleKey] || locales['de'];
-	let text = locale[key] || locales['de'][key] || `[MISSING: ${key}]`;
-	
-	// Simple placeholder replacement for dynamic messages
+	const lang = window.currentLocaleKey || 'en';
+	const locale = locales[lang];
+	let text = locale[key] || locales['en'][key] || `[MISSING: ${key}]`;
 	args.forEach(arg => {
 		text = text.replace('%s', arg); 
 	});
 	return text;
 }
+
+window.setLanguage = function(newLang) {
+	window.currentLocaleKey = newLang;
+	// console.log("Debug: L switched to " + newLang);
+};
 
 window.locales = locales;
