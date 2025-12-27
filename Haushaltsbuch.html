@@ -162,19 +162,19 @@
 		<h1 class="text-xl font-bold text-[var(--color-scheme)] flex items-center gap-2">
 			</h1>
 		<nav id="headerNav" class="hidden flex gap-2">
-			<button id="navHomeBtn" class="px-3 py-1 rounded text-sm transition-colors duration-200 flex items-center gap-2 text-gray-500 hover:bg-gray-100">
-				</button>
-			<button id="navImportBtn" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
-			<button id="navCategorizeBtn" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
-			<button id="navVisualizeBtn" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
+			<button id="navHomeBtn" data-i18n="nav_home" class="px-3 py-1 rounded text-sm transition-colors duration-200 flex items-center gap-2 text-gray-500 hover:bg-gray-100"><i class="fas fa-home"></i></button>
+			<button id="navImportBtn" data-i18n="nav_import" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
+			<button id="navCategorizeBtn" data-i18n="nav_categorize" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
+			<button id="navVisualizeBtn" data-i18n="nav_visualize" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
 		</nav>
+		
 		<div id="headerActions" class="hidden flex gap-4 items-center">
-			<button id="resetBtn" class="hidden flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition-colors duration-200">
-				</button>
-			 <button id="saveJsonBtn" class="hidden flex items-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-3 py-1 rounded transition-colors duration-200">
-				</button>
-			 <button id="exportBtn" class="hidden flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition-colors duration-200">
-				</button>
+			<button id="resetBtn" data-i18n="btn_reset"  class="hidden flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition-colors duration-200">
+			<i class="fas fa-trash"></i>	</button>
+			 <button id="saveJsonBtn"  data-i18n="btn_save_json"  class="hidden flex items-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-3 py-1 rounded transition-colors duration-200">
+				<i class="fas fa-save"></i></button>
+			 <button id="exportBtn" data-i18n="btn_export_csv"  class="hidden flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition-colors duration-200">
+				<i class="fas fa-file-export"></i></button>
 		</div>
 	</header>
 	<div id="statusBar" class="hidden bg-blue-50 p-2 text-sm text-blue-800 text-center border-b border-blue-100">
@@ -281,13 +281,13 @@
 			
 			<div class="w-1/3 max-w-lg bg-white flex flex-col overflow-hidden rounded-lg shadow">
 				<div class="p-4 bg-gray-50">
-					<h2 id="rulesTitle" class="font-semibold text-lg mb-4">
+					<h2 id="rulesTitle" <i class="fas fa-filter"></i> data-i18n="rules_title"> class="font-semibold text-lg mb-4">
 						</h2>
 					
 					<div class="bg-white p-3 rounded shadow-sm space-y-3">
 						<div>
 							<label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="rules_search_label"></label>
-							<input type="text" id="ruleSearch" placeholder="z.B. Miete..." class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" disabled /> 
+							<input type="text" id="ruleSearch" data-i18n="rules_search_placeholder" placeholder="z.B. Miete..." class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" disabled /> 
 							<div class="text-xs text-gray-500 mt-1 text-right" id="matchCountPreview">0 <span data-i18n="rules_match_preview"></span></div>
 						</div>
 						<div>
@@ -385,7 +385,7 @@
 							<i class="fas fa-wallet mr-2"></i> <span data-i18n="vis_nested_pie_overview">Übersicht</span>
 						</button>
 						<button type="button" id="visCategoriesToggle" class="px-3 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100">
-							<i class="fas fa-tags mr-2"></i> <span data-i18n="vis_nested_pie_expenses">Ausgaben</span>
+							<i class="fas fa-tags mr-2"></i> <span data-i18n="vis_nested_variable">Ausgaben</span>
 						</button>
 					</div>
 				 </div>
@@ -900,33 +900,15 @@
 						el.textContent = text;
 					}
 				}
-
+				// Tooltips
 				if (el.hasAttribute('data-i18n-title')) {
 					const titleKey = el.getAttribute('data-i18n-title');
 					el.title = L(titleKey);
 				}
 			});
-			
-			DOM.navHomeBtn.innerHTML = `<i class="fas fa-home"></i> ${L('nav_home')}`;
-			DOM.navCategorizeBtn.textContent = L('nav_categorize');
-			DOM.navVisualizeBtn.textContent = L('nav_visualize');
-			DOM.navImportBtn.textContent = L('nav_import');
-			
-			DOM.resetBtn.innerHTML = `<i class="fas fa-trash"></i> ${L('btn_reset')}`;
-			DOM.saveJsonBtn.innerHTML = `<i class="fas fa-save"></i> ${L('btn_save_json')}`;
-			DOM.exportBtn.innerHTML = `<i class="fas fa-file-export"></i> ${L('btn_export_csv')}`;
-			DOM.rulesTitle.innerHTML = `<i class="fas fa-filter"></i> ${L('rules_title')}`;
-			
+				
 			DOM.mappingInstruction.innerHTML = L('mapping_instruction_base') + ' <br>' +
 			DOM.MAPPING_FIELDS.map(f => `<span id="map-label-${f}">${L(f)}</span>`).join(', ');
-			
-			DOM.ruleSearch.placeholder = L('rules_search_placeholder');
-			DOM.ruleCategory.placeholder = L('rules_category_placeholder');
-		  
-			const categoriesBtnSpan = DOM.visCategoriesToggle.querySelector('span');
-			if (categoriesBtnSpan) {
-				categoriesBtnSpan.textContent = L('vis_nested_variable');
-			}
 		}
 
 		return {
