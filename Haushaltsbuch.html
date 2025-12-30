@@ -362,13 +362,20 @@
 			
 			<div id="visDate" class="flex items-center gap-4">
 				<div class="flex items-center gap-2">
-					<label for="dateStart" class="text-sm font-medium text-gray-600" data-i18n="vis_label_from"></label>
+					<label for="dateStart" class="text-sm font-medium text-gray-600" data-i18n="vis_label_from">Von</label>
 					<input type="date" id="dateStart" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
 				</div>
 				<div class="flex items-center gap-2">
-					<label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to"></label>
+					<label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to">Bis</label>
 					<input type="date" id="dateEnd" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
 				</div>
+				<select id="dateRange" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm bg-gray-50 text-gray-700 cursor-pointer hover:bg-white transition-colors">
+					<option value="all">Alle</option> 
+					<option value="current">Aktueller Monat</option>
+					<option value="4">4 Monate</option>
+					<option value="8">8 Monate</option>
+					<option value="12">12 Monate</option>
+				</select>
 			</div>
 
 			<div class="flex-1"></div>
@@ -608,6 +615,7 @@
 		// Visualisierungs Krams
 		dateStart: document.getElementById('dateStart'),
 		dateEnd: document.getElementById('dateEnd'),
+		dateRange: document.getElementById('dateRange'), // 2512 
 		categoriesChart: document.getElementById('categoriesChart'),
 		chartEmptyState: document.getElementById('chartEmptyState'),
 		
@@ -1757,6 +1765,48 @@
 			return dateA.getTime() - dateB.getTime();
 		}
 
+		// 301225 setzt start u end datum basierend auf bereichswahl
+		function _handleRangeSelect() {
+			const val = DOM.dateRange.value;
+			if (!val) return;
+
+			const { tableData } = Store.getState();
+			if (!tableData || tableData.length === 0) return;
+
+			if (val === 'all') {
+				_setDateFiltersFromData(tableData);
+				updateChart();
+				return;
+			}
+
+			// finde aktuellstes datum im satz
+			let maxDate = null;
+			tableData.forEach(row => {
+				const d = Utils.parseGermanDate(row.Buchungstag);
+				if (d && (!maxDate || d > maxDate)) maxDate = d;
+			});
+
+			if (!maxDate) return;
+
+			let start = new Date(maxDate);
+			let end = new Date(maxDate);
+
+			if (val === 'current') {
+				// 1 tag des monats
+				start.setDate(1);
+			} else {
+				const months = parseInt(val);
+				// Gehe X Monate zurück (start ist immer der 1. des Zielmonats)
+				start.setDate(1);
+				start.setMonth(start.getMonth() - (months - 1));
+			}
+
+			DOM.dateStart.value = Utils.formatDateForInput(start);
+			DOM.dateEnd.value = Utils.formatDateForInput(end);
+
+			updateChart();
+		}
+		
 		function _destroyCharts() {
 			_myChartInst?.destroy();
 			_myChartInst = null;
@@ -2687,6 +2737,7 @@
 				
 				DOM.dateStart.addEventListener('change', updateChart);
 				DOM.dateEnd.addEventListener('change', updateChart);
+				DOM.dateRange.addEventListener('change', _handleRangeSelect);
 				DOM.visLinesAllBtn.addEventListener('click', () => _handLineTog('all'));
 				DOM.visLinesTopBtn.addEventListener('click', () => _handLineTog('top'));
 				DOM.lineChartCanvas.addEventListener('dblclick', _handleLineDblClick);
