@@ -1027,13 +1027,19 @@
 			},
 
 			loadState: function(data, rules, currency, selTopCats) {
-				// daten + regeln sanitizen
-				_state.tableData = (data || []).map(row => ({ 
-					...row, 
-					Betrag: Utils.parseGermanNumber(row.Betrag),
-					Fixkosten: row.Fixkosten ? 1 : 0,
-					Kategorie: (row.Kategorie || "").toLowerCase()
-				}));
+				// daten + regeln sanitizen 
+				_state.tableData = (data || []).map(row => {
+					const dObj = Utils.parseGermanDate(row.Buchungstag);
+					
+					return { 
+						...row, 
+						// 010126 Format ist 8601 YYYY-MM-DD
+						Buchungstag: dObj ? Utils.formatDateForInput(dObj) : "", 
+						Betrag: Utils.parseGermanNumber(row.Betrag),
+						Fixkosten: row.Fixkosten ? 1 : 0,
+						Kategorie: (row.Kategorie || "").toLowerCase()
+					};
+				});
 				
 				_state.savedRules = (rules || []).map(rule => ({ 
 					...rule, 
@@ -1372,21 +1378,25 @@
 			const knownColumns = {
 				"Buchungstag": { 
 					title: L("Buchungstag"),
+					field: "Buchungstag",
 					editor: "date",
-					width: 90, 
-					sorter: function(a, b) {
-						const dateA = a ? new Date(a) : null;
-						const dateB = b ? new Date(b) : null;
-						if (dateA === null && dateB === null) return 0;
-						if (dateA === null) return -1; 
-						if (dateB === null) return 1;
-						return dateA.getTime() - dateB.getTime();
+					width: 100, 
+					// Performance ISO8601 Strings sortieren sich automatisch mit dem stdsorter
+					sorter: "string",
+					// Für die Anzeige wird YYYY-MM-DD zu DD.MM.YYYY
+					formatter: function(cell) {
+						const val = cell.getValue();
+						if (!val) return "";
+						const parts = val.split('-');
+						if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+						return val;
 					},
 					cellEdited: function(cell) {
-							const id = cell.getRow().getData().id;
-							const newValue = cell.getValue();
-							Store.updateTableDataField(id, "Buchungstag", newValue);
-						}
+						const id = cell.getRow().getData().id;
+						const newValue = cell.getValue();
+						// Input type date ist schon n ISO
+						Store.updateTableDataField(id, "Buchungstag", newValue);
+					}
 				},
 				"Verwendungszweck": { title: L("Verwendungszweck"), sorter: "string", headerFilter:"input", formatter: "textarea", minWidth: 200, 
 					cellEdited: function(cell) {
@@ -1755,17 +1765,29 @@
 		// Cache für Detail Daten um nicht dauernd neu rechnen zu müssen
 		let _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
 
-		/** Custom date sorter für Tabulator */
-		function _dateSorter(a, b) {
-			const dateA = a ? new Date(a) : null;
-			const dateB = b ? new Date(b) : null;
-			if (dateA === null && dateB === null) return 0;
-			if (dateA === null) return -1; 
-			if (dateB === null) return 1;
-			return dateA.getTime() - dateB.getTime();
+		/** Wandelt ISO YYYY-MM-DD in lokales Date Objekt um.
+		 * 010126 Nutzt nicht new Date(isoString) wegen greenwitch versatz
+		 */
+		function _isoToLocal(isoStr) {
+			if (!isoStr) return null;
+			const [y, m, d] = isoStr.split('-').map(Number);
+			return new Date(y, m - 1, d); 
 		}
 
-		// 301225 setzt start u end datum basierend auf bereichswahl
+		/** 010126 iso nach De für Tabulator Anzeige
+		 */
+		function _dateFormatter(cell) {
+			const val = cell.getValue();
+			if (!val) return "";
+			const parts = val.split('-');
+			// Fallback falls Datenmüll, sonst DD.MM.YYYY
+			if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+			return val;
+		}
+
+		/** 
+		* 301225 setzt start u end datum basierend auf bereichswahl
+		*/
 		function _handleRangeSelect() {
 			const val = DOM.dateRange.value;
 			if (!val) return;
@@ -1780,14 +1802,15 @@
 			}
 
 			// finde aktuellstes datum im satz
-			let maxDate = null;
+			let maxIso = "";
 			tableData.forEach(row => {
-				const d = Utils.parseGermanDate(row.Buchungstag);
-				if (d && (!maxDate || d > maxDate)) maxDate = d;
+				if (row.Buchungstag > maxIso) maxIso = row.Buchungstag;
 			});
 
-			if (!maxDate) return;
-
+			if (!maxIso) return;
+			
+			// Startdatum 
+			const maxDate = _isoToLocal(maxIso);
 			let start = new Date(maxDate);
 			let end = new Date(maxDate);
 
@@ -1796,7 +1819,7 @@
 				start.setDate(1);
 			} else {
 				const months = parseInt(val);
-				// Gehe X Monate zurück (start ist immer der 1. des Zielmonats)
+				// Gehe X Monate zurück
 				start.setDate(1);
 				start.setMonth(start.getMonth() - (months - 1));
 			}
@@ -1839,18 +1862,21 @@
 			_activeDetailTab = 'einnahmen';
 		}
 		
+		// Setze start End Datum entsprechend d store daten
 		function _setDateFiltersFromData(tableData) {
-			let minDate = null;
-			let maxDate = null;
+			let minIso = null;
+			let maxIso = null;
+			
 			tableData.forEach(row => {
-				const date = Utils.parseGermanDate(row.Buchungstag); 
-				if (date) {
-					if (!minDate || date < minDate) minDate = date;
-					if (!maxDate || date > maxDate) maxDate = date;
+				const val = row.Buchungstag;
+				if (val) {
+					if (!minIso || val < minIso) minIso = val;
+					if (!maxIso || val > maxIso) maxIso = val;
 				}
 			});
-			if (minDate) DOM.dateStart.value = Utils.formatDateForInput(minDate);
-			if (maxDate) DOM.dateEnd.value = Utils.formatDateForInput(maxDate);
+			
+			if (minIso) DOM.dateStart.value = minIso;
+			if (maxIso) DOM.dateEnd.value = maxIso;
 		}
 
 		async function showTab(tabName, initialSubTab = 'einnahmen') {
@@ -1981,7 +2007,8 @@
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_income"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
-						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
+						// 010126 sorter:string reicht f ISO u Formatter macht es hübsch in DE Format
+						{ title: L("Buchungstag"), field: "Buchungstag", sorter: "string", width: 100, formatter: _dateFormatter },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea" },
 						{ title: L("Betrag"), field: "Betrag", sorter: "number", hozAlign: "right", width: 100,
 							formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
@@ -2005,7 +2032,7 @@
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_variable"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
-						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 100 },
+						{ title: L("Buchungstag"), field: "Buchungstag", sorter: "string", width: 100, formatter: _dateFormatter },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
 						{ title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
 							formatter: function(cell) { return cell.getValue() ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${cell.getValue()}</span>` : ''; }
@@ -2035,7 +2062,7 @@
 					data: data, layout: "fitColumns", height: "100%", placeholder: L("vis_placeholder_no_fixed"),
 					initialSort: [{ column: "Buchungstag", dir: "desc" }],
 					columns: [
-						{ title: L("Buchungstag"), field: "Buchungstag", sorter: _dateSorter, width: 120 },
+						{ title: L("Buchungstag"), field: "Buchungstag", sorter: "string", width: 120, formatter: _dateFormatter },
 						{ title: L("Verwendungszweck"), field: "Verwendungszweck", sorter: "string", headerFilter: "input", formatter: "textarea", minWidth: 120 },
 						{ title: L("Kategorie"), field: "Kategorie", sorter: "string", headerFilter: "input", width: 130,
 							formatter: function(cell) { return cell.getValue() ? `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${cell.getValue()}</span>` : ''; }
@@ -2053,18 +2080,14 @@
 		/* Daten Verarbeitung */
 		
 		function _getFilteredData(tableData) {
-			const start = DOM.dateStart.value ? new Date(DOM.dateStart.value) : null;
-			const end = DOM.dateEnd.value ? new Date(DOM.dateEnd.value) : null;
-
-			if (start) start.setHours(0, 0, 0, 0);
-			if (end) end.setHours(23, 59, 59, 999);
+			// DOM inputs sind bereits YYYY-MM-DD Strings
+			const startStr = DOM.dateStart.value || "0000-00-00";
+			const endStr = DOM.dateEnd.value || "9999-12-31"; // Y10K incoming :)
 
 			return tableData.filter(row => {
-				const rowDate = Utils.parseGermanDate(row.Buchungstag);
-				if (!rowDate) return false;
-				const isAfterStart = start ? rowDate >= start : true;
-				const isBeforeEnd = end ? rowDate <= end : true;
-				return isAfterStart && isBeforeEnd;
+				const d = row.Buchungstag; 
+				if (!d) return false;
+				return d >= startStr && d <= endStr;
 			});
 		}
 
@@ -2169,7 +2192,7 @@
 			filteredData.forEach(row => {
 				const amount = row.Betrag || 0;
 				const tableRow = { ...row };
-				const date = Utils.parseGermanDate(row.Buchungstag);
+				const date = _isoToLocal(row.Buchungstag);
 				
 				if (amount > 0) {
 					einnahmenData.push(tableRow);
@@ -2181,7 +2204,7 @@
 					if (row.Fixkosten) totalFixedExpenses += amount;
 					else totalVariableExpenses += amount;
 					
-					// Scatter braucht nur Ausgaben und valides Datum
+					// Scatter braucht nur Ausgaben und valides Date obj
 					if (date && !row.Fixkosten) {
 						scatterData.push({
 							x: date.getTime(),
@@ -2191,10 +2214,11 @@
 					}
 				}
 				
-				 // Monthly Aggre Logic
-				if (!date) return;
+				 // Monthly Aggre Logic; Performance mit String Slice
+				if (!row.Buchungstag) return;
 				
-				const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+				// 2025-01-01 -> 2025-01
+				const monthKey = row.Buchungstag.substring(0, 7);
 				uniqueMonths.add(monthKey);
 
 				if (!monthlyData[monthKey]) monthlyData[monthKey] = { income: 0, fixed: 0, variable: 0 };
