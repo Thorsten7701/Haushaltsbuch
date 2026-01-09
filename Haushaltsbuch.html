@@ -511,6 +511,9 @@
 					<button id="visTabFixeAusg" class="details-tab-btn flex items-center gap-2">
 						<i class="fas fa-file-invoice-dollar text-purple-500"></i><span data-i18n="vis_nested_fixed"></span>
 					</button>
+					<button id="visTabTop10" class="details-tab-btn flex items-center gap-2">
+						<i class="fas fa-top10 text-orange-500"></i><span data-i18n="vis_nested_top10">Top 10</span>
+					</button>
 				</nav>
 
 				<div class="flex-grow flex-col flex min-h-0 border border-t-0 border-gray-300 rounded-b-md overflow-hidden bg-gray-50">
@@ -522,6 +525,9 @@
 					</div>
 					<div id="visContentFixeAusg" class="flex-grow flex flex-col min-h-0 hidden">
 						<div id="fixe-ausgaben-table" class="flex-grow min-h-0"></div>
+					</div>
+					<div id="visContTop10" class="flex-grow flex flex-col min-h-0 hidden">
+						<div id="tblTop10" class="max-w-[300px]"></div>
 					</div>
 				</div>
 			</div>
@@ -627,14 +633,20 @@
 		visTabDetails: document.getElementById('visTabDetails'),
 		visContentDetails: document.getElementById('visContentDetails'),
 		visTabEinnahmen: document.getElementById('visTabEinnahmen'),
-		visTabVariAusg: document.getElementById('visTabVariAusg'),
-		visTabFixeAusg: document.getElementById('visTabFixeAusg'),
 		visContentEinnahmen: document.getElementById('visContentEinnahmen'),
-		visContentVariAusg: document.getElementById('visContentVariAusg'),
-		visContentFixeAusg: document.getElementById('visContentFixeAusg'),
 		einnahmenTableEl: document.getElementById('einnahmen-table'),
+
+		visTabVariAusg: document.getElementById('visTabVariAusg'),
+		visContentVariAusg: document.getElementById('visContentVariAusg'),
 		variableAusgabenTableEl: document.getElementById('variable-ausgaben-table'),
+
+		visTabFixeAusg: document.getElementById('visTabFixeAusg'),		
+		visContentFixeAusg: document.getElementById('visContentFixeAusg'),
 		fixeAusgabenTableEl: document.getElementById('fixe-ausgaben-table'),
+		
+		visTabTop10: document.getElementById('visTabTop10'),
+        visContTop10: document.getElementById('visContTop10'),
+        tblTop10: document.getElementById('tblTop10'),
 		
 		// Pie Tabs
 		visTabPie: document.getElementById('visTabPie'),
@@ -683,7 +695,8 @@
 		/** Tailwind Klassen für die Navigation */
 		NAV_STYLES: {
 			BASE: 'px-3 py-1 rounded text-sm transition',
-			ACTIVE: 'bg-blue-100 text-blue-700 font-semibold',
+			// 260107 Themable Nav 
+			ACTIVE: 'bg-gray-100 text-[var(--color-scheme)] font-bold shadow-sm', 
 			INACTIVE: 'text-gray-500 hover:bg-gray-100',
 			DISABLED: 'text-gray-300 cursor-not-allowed'
 		},
@@ -1418,7 +1431,9 @@
 					editor: "input",
 					formatter: function(cell) {
 						const val = cell.getValue();
+
 						if (!val) return `<span class="text-gray-300 italic text-xs">${L('category_placeholder')}</span>`; 
+						//260107 Themable Bubbles  return `<span class="px-2 py-1 rounded-full text-xs font-semibold" style="background-color: var(--color-scheme); color: white;">${val}</span>`;
 						return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
 					},
 					cellEdited: function(cell) {
@@ -1735,7 +1750,7 @@
 
 	/**
 	 * @namespace VisualizeModule
-	 * @description Verwaltet die Visualisierungs Seite (Chart.js, Datumsfilter, Detail Tabellen).
+	 * @description Verwaltet die Visualisierungs Seite.
 	 */
 	const VisualizeModule = (function() {
 		let _myChartInst = null; 
@@ -1745,7 +1760,9 @@
 		
 		let _einnahmenTableInst = null;
 		let _variableAusgabenTableInst = null;
-		let _fixeAusgabenTableInst = null
+		let _fixeAusgabenTableInst = null;
+		let _top10Inst = null;
+		
 		let _isInitialized = false;
 		
 		let _activeOverviewTab = 'overview';
@@ -1761,9 +1778,12 @@
 		let _einnahmenTableReadyPromise = null;
 		let _variableAusgabenTableReadyPromise = null;
 		let _fixeAusgabenTableReadyPromise = null;
+		let _top10Promise = null;
+		
+		let _storeDirty = false;
 
 		// Cache für Detail Daten um nicht dauernd neu rechnen zu müssen
-		let _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
+		let _cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [], top10data: [] };
 
 		/** Wandelt ISO YYYY-MM-DD in lokales Date Objekt um.
 		 * 010126 Nutzt nicht new Date(isoString) wegen greenwitch versatz
@@ -1785,15 +1805,14 @@
 			return val;
 		}
 
-		/** 
-		* 301225 setzt start u end datum basierend auf bereichswahl
+		/** * 301225 setzt start u end datum basierend auf bereichswahl
 		*/
 		function _handleRangeSelect() {
 			const val = DOM.dateRange.value;
 			if (!val) return;
 
 			const { tableData } = Store.getState();
-			if (!tableData || tableData.length === 0) return;
+			if (tableData.length === 0) return;
 
 			if (val === 'all') {
 				_setDateFiltersFromData(tableData);
@@ -1809,7 +1828,7 @@
 
 			if (!maxIso) return;
 			
-			// Startdatum 
+			// Startdatum
 			const maxDate = _isoToLocal(maxIso);
 			let start = new Date(maxDate);
 			let end = new Date(maxDate);
@@ -1853,12 +1872,16 @@
 			
 			_fixeAusgabenTableInst?.destroy();
 			_fixeAusgabenTableInst = null;
+
+			_top10Inst?.destroy();
+			_top10Inst = null;
 			
 			_einnahmenTableReadyPromise = null;
 			_variableAusgabenTableReadyPromise = null;
 			_fixeAusgabenTableReadyPromise = null;
+			_top10Promise = null;
 			
-			_cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [] };
+			_cachedDetailData = { einnahmenData: [], variableAusgabenData: [], fixeAusgabenData: [], top10data: [] };
 			_activeDetailTab = 'einnahmen';
 		}
 		
@@ -1915,9 +1938,12 @@
 			DOM.visContentEinnahmen.classList.add('hidden');
 			DOM.visContentVariAusg.classList.add('hidden');
 			DOM.visContentFixeAusg.classList.add('hidden');
+			DOM.visContTop10.classList.add('hidden');
+
 			DOM.visTabEinnahmen.classList.remove('active');
 			DOM.visTabVariAusg.classList.remove('active');
 			DOM.visTabFixeAusg.classList.remove('active');
+			DOM.visTabTop10.classList.remove('active'); 
 
 			_activeDetailTab = tabName;
 
@@ -1930,6 +1956,9 @@
 			} else if (tabName === 'fixe') {
 				DOM.visContentFixeAusg.classList.remove('hidden');
 				DOM.visTabFixeAusg.classList.add('active');
+			} else if (tabName === 'top10') {
+				DOM.visContTop10.classList.remove('hidden');
+				DOM.visTabTop10.classList.add('active');
 			}
 		}
 		
@@ -2076,6 +2105,39 @@
 			});
 			await _fixeAusgabenTableReadyPromise;
 		}
+		
+		//260108 handles top10 expenses table 
+		async function _updateTop10Table(data) {
+			const { currentCurrency } = Store.getState();
+			if (_top10Inst) {
+				await _top10Inst.replaceData(data);
+				return;
+			}
+
+			_top10Promise = new Promise((resolve) => {
+				_top10Inst = new Tabulator(DOM.tblTop10, {
+					data: data,
+					layout: "fitColumns",
+					height: "auto",
+					placeholder: "Keine Daten",
+					columns: [
+						{ title: "#", field: "rank", width: 50, hozAlign: "center", headerSort: false },
+						{ title: L("Kategorie"), field: "kategorie", headerSort: false, 
+							formatter: function(cell) {
+								const val = cell.getValue();
+								return `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${val}</span>`;
+							}
+						},
+						{ title: L("Betrag"), field: "betrag", hozAlign: "right", headerSort: false,
+							formatter: "money", formatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true },
+							// 260108 summme 
+							bottomCalc: "sum", bottomCalcFormatter: "money", bottomCalcFormatterParams: { decimal: ",", thousand: ".", symbol: currentCurrency, symbolAfter: true }
+						}					],
+					tableBuilt: function() { resolve(); }
+				});
+			});
+			await _top10Promise;
+		}
 
 		/* Daten Verarbeitung */
 		
@@ -2156,6 +2218,49 @@
 				
 				container.appendChild(div);
 			});
+		}
+		
+		// Berechnet Top 10 details Tabelle
+		function _calcTop10(variData) {
+			const allExp = [...variData];
+			const catSums = {};
+			let uncategSum = 0;
+
+			allExp.forEach(row => {
+				const cat = (row.Kategorie || '').trim();
+				const amt = Math.abs(row.Betrag || 0);
+				
+				if (!cat) {
+					uncategSum += amt;
+				} else {
+					const key = cat.toLowerCase();
+					if (!catSums[key]) catSums[key] = { name: cat, sum: 0 };
+					catSums[key].sum += amt;
+				}
+			});
+
+			const sorted = Object.values(catSums).sort((a, b) => b.sum - a.sum);
+			const top10 = sorted.slice(0, 10);
+			const rest = sorted.slice(10);
+
+			let otherSum = uncategSum;
+			rest.forEach(item => otherSum += item.sum);
+
+			const result = top10.map((item, idx) => ({
+				rank: idx + 1,
+				kategorie: item.name,
+				betrag: -item.sum,
+				isOther: false
+			}));
+
+			result.push({
+				rank: '',
+				kategorie: 'Other',
+				betrag: -otherSum,
+				isOther: true
+			});
+
+			return result;
 		}
 
 		function _getCustomChartConfig() {
@@ -2352,17 +2457,16 @@
 			}
 
 			const { einnahmenData, variableAusgabenData, fixeAusgabenData, scatterData, monthlyData, customMonthlyData, uniqueMonths, totals } = aggResult;
-
-			// Pie Charts
+			// Pie chart
 			const pieData = _preparePieData(variableAusgabenData, totals);
-
-			// Line Charts
+			// Line chart
 			const lineData = _prepareLineData(monthlyData, customMonthlyData, customCategories, uniqueMonths);
-			
-			// Objekt zusammenbaun
+			// top 10 details
+			const top10data = _calcTop10(variableAusgabenData);
+
 			return {
 				summary: { totalIncome: totals.totalIncome, totalExpenses: totals.totalExpenses, totalBalance: totals.totalBalance },
-				details: { einnahmenData, variableAusgabenData, fixeAusgabenData },
+				details: { einnahmenData, variableAusgabenData, fixeAusgabenData, top10data },
 				expensePie: pieData.expensePie,
 				overviewPie: pieData.overviewPie,
 				lineChart: lineData.lineChart,
@@ -2413,6 +2517,7 @@
 			if (_activeDetailTab === 'einnahmen') await _updateEinnahmenTable(_cachedDetailData.einnahmenData);
 			else if (_activeDetailTab === 'variable') await _updateVariableAusgabenTable(_cachedDetailData.variableAusgabenData);
 			else if (_activeDetailTab === 'fixe') await _updateFixeAusgabenTable(_cachedDetailData.fixeAusgabenData);
+			else if (_activeDetailTab === 'top10') await _updateTop10Table(_cachedDetailData.top10data);
 		}
 
 		// Wird intern aufgerufen, wenn nur Checkbox geklickt wird.
@@ -2428,6 +2533,14 @@
 		}
 
 		async function updateChart() {
+		// 260107 tabellen erst reRendern, wenn die Seite sichtbar ist.
+			if (DOM.pageVisualize.classList.contains('hidden')) {
+				_storeDirty = true;
+				console.log("debug: page hidden, skipping chart update");
+				return;
+			}
+			
+			_storeDirty = false;
 			const { tableData, currentCurrency } = Store.getState();
 			
 			if (tableData.length === 0) {
@@ -2784,6 +2897,10 @@
 				});
 				DOM.visTabFixeAusg.addEventListener('click', async () => {
 					_handleNestedTabClick('fixe');
+					await _refreshDetailTables();
+				});
+				DOM.visTabTop10.addEventListener('click', async () => {
+					_handleNestedTabClick('top10');
 					await _refreshDetailTables();
 				});
 
