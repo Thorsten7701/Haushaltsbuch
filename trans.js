@@ -49,6 +49,7 @@ const locales = {
 		"mapping_title": "Felder zuweisen",
 		"mapping_instruction_base": "Bitte ordnen Sie die folgenden Felder nacheinander durch anklicken der Tabellenüberschrift zu:",
 		"mapping_btn_cancel": "Abbrechen",
+		"mapping_btn_fin": "Fertig",
 
 		// --- Categorize Page ---
 	"category_placeholder": "Unkategorisiert",
@@ -112,6 +113,7 @@ const locales = {
 		"Kategorie": "Kategorie",
 		"Fixkosten": "Fix",
 	"Monat": "Month",
+	"Optional": "Optional",
 
 		// --- Dynamic Messages ---
 		"msg_parsing_error": "Fehler beim CSV Import. Falsches Format? Bitte Trennzeichen prüfen.",
@@ -188,6 +190,7 @@ const locales = {
 		"mapping_title": "Map Fields",
 		"mapping_instruction_base": "Please map the following fields in order by clicking the table header:",
 		"mapping_btn_cancel": "Cancel",
+		"mapping_btn_fin": "Finish",
 
 		// --- Categorize Page ---
 	"category_placeholder": "Uncategorized",
@@ -251,6 +254,7 @@ const locales = {
 		"Kategorie": "Category",
 		"Fixkosten": "Fixed",
 	"Monat": "Month",
+	"Optional": "Optional",
 
 		// --- Dynamic Messages ---
 		"msg_parsing_error": "Error during CSV import. Wrong format? Please check delimiter.",

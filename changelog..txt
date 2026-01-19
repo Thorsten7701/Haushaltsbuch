@@ -5,7 +5,10 @@ Store: Use data caching to improve performance.
 Fix table data import + syncing issues. use local cellEdited callbacks
 Fix negative numbers enclosed in parentheses and use BOM encoding for Excel.
 Fix CSV Dates offbyOne Err use getters instead of toIsoString, dont allow rule dupes
+Optionally import an additional, searchable csv column.
 Visuals: Added "top10" logic + Income, Variable, Fixed expenses and Balance details view.
-Apply and delete all categorization rules.
+Apply and delete all categorization rules btn.
 csv Import now appends to existing Data if possible, load session allows for only loading Rules.
+store defaults to iso8601, no need for date parsing elsewhere, deferr updating invisible charts.
+update detail tables wo destroying
 --------------------------

@@ -678,7 +678,7 @@
 		chartEmptyStateScatter: document.getElementById('chartEmptyStateScatter'),
 		
 		/**CSV Import */
-		MAPPING_FIELDS: ['Buchungstag', 'Verwendungszweck', 'Betrag'],
+		MAPPING_FIELDS: ['Buchungstag', 'Betrag', 'Verwendungszweck', 'Optional'],
 		
 		/** Kreisdiagramm. */
 		CHART_COLORS: [
@@ -971,9 +971,11 @@
 			dataSet.forEach(row => {
 				if (row.manual) return;
 
+				// 260114 Suche in Feld Optional 
 				const purposeMatch = (row["Verwendungszweck"] || '').toLowerCase().includes(term);
+				const optionalMatch = (row["Optional"] || '').toLowerCase().includes(term);
 				
-				if (purposeMatch) {
+				if (purposeMatch || optionalMatch) {
 					row['Kategorie'] = rule.category;
 					if (rule.isFixkosten) {
 						row['Fixkosten'] = 1;
@@ -1134,8 +1136,10 @@
 				if (!searchTerm || _state.tableData.length === 0) return 0;
 				const term = searchTerm.toLowerCase();
 				
+				// 260114 zählt in Zweck + Optional
 				return _state.tableData.filter(row => 
-					(row["Verwendungszweck"] || '').toLowerCase().includes(term)
+					(row["Verwendungszweck"] || '').toLowerCase().includes(term) || 
+					(row["Optional"] || '').toLowerCase().includes(term)
 				).length;
 			}
 		};
@@ -1158,6 +1162,14 @@
 
 			_currentMappingIndex = 0;
 			_fieldMappings = {};
+
+			// Reset zu cancel button 
+			DOM.cancelMappingBtn.classList.remove('bg-[var(--color-scheme)]', 'hover:bg-[var(--color-scheme-hover)]', 'text-white', 'font-bold', 'shadow-md');
+			DOM.cancelMappingBtn.classList.add('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+			DOM.cancelMappingBtn.innerHTML = ''; 
+			DOM.cancelMappingBtn.setAttribute('data-i18n', 'mapping_btn_cancel');
+			
+			Utils.updateTexts();
 
 			_updateMappingInstructionUI();
 
@@ -1213,13 +1225,33 @@
 			_currentMappingIndex++;
 			_updateMappingInstructionUI();
 
+			// idx 3, optional
+			if (_currentMappingIndex === 3) {
+				// magi3: grauen cancel btn zu grün Apply btn
+				DOM.cancelMappingBtn.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+				DOM.cancelMappingBtn.classList.add('bg-[var(--color-scheme)]', 'hover:bg-[var(--color-scheme-hover)]', 'text-white', 'font-bold', 'shadow-md');
+				
+				// Attribut entfernen, damit updateTexts() nicht überschreibt
+				DOM.cancelMappingBtn.removeAttribute('data-i18n');
+				DOM.cancelMappingBtn.innerHTML = `<i class="fas fa-check"></i> <span>${L('mapping_btn_fin')}</span>`;
+				
+				Utils.showStatus('msg_optional_field_ready', 'info'); 
+			}
+
+			// Auto Finish
 			if (_currentMappingIndex === DOM.MAPPING_FIELDS.length) {
 				Utils.showStatus('msg_all_fields_mapped', 'success');
-				setTimeout(_finishImportProcess, 500);
+				setTimeout(_finishImportProcess, 300);
 			}
 		}
 		
 		function _cancelMapping() {
+			// 260114 bei Index 3 fungiert der Button als OK
+			if (_currentMappingIndex >= 3) {
+				_finishImportProcess();
+				return;
+			}
+
 			DOM.importMappingStep.classList.add('hidden');
 			DOM.importInitialStep.classList.remove('hidden');
 			_pendingData = [];
@@ -1383,6 +1415,10 @@
 		 * Initialisiert die Tabulator Instanz
 		 * lokale cell Events wegen data sync bugs
 		 */
+		/**
+		 * Initialisiert die Tabulator Instanz
+		 * lokale cell Events wegen data sync bugs
+		 */
 		function _initTable(data) {
 			if (_tableInst) _tableInst.destroy();
 			
@@ -1417,6 +1453,14 @@
 							const newValue = cell.getValue();
 							Store.updateTableDataField(id, "Verwendungszweck", newValue);
 						}
+				},
+				// 260114 Added Optional
+				"Optional": { title: L("Optional"), sorter: "string", headerFilter:"input", formatter: "textarea", maxWidth: 130,
+					cellEdited: function(cell) {
+						const id = cell.getRow().getData().id;
+						const newValue = cell.getValue();
+						Store.updateTableDataField(id, "Optional", newValue);
+					}
 				},
 				"Betrag": { title: L("Betrag"), sorter: "number", hozAlign: "right", width: 100, 
 					editor: "number",
@@ -1465,6 +1509,7 @@
 			const knownKeys = Object.keys(knownColumns);
 			
 			knownKeys.forEach(key => {
+				// 260114 wenn vorh dann Optional eingefügn
 				if (key !== 'Kategorie' && key !== 'Fixkosten' && dataKeys.includes(key)) {
 					columns.push({ ...knownColumns[key], field: key });
 				}
