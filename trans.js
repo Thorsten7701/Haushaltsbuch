@@ -21,7 +21,7 @@ const locales = {
 		"modal_btn_confirm": "Bestätigen",
 		
 		// --- Home Page ---
-		"home_welcome_title": "Willkommen!",
+		"home_welcome_title": "Willkommen",
 		"home_welcome_text": "Womit möchten Sie beginnen?",
 		"home_btn_new": "Neu Beginnen",
 		"home_btn_new_desc": "(CSV-Datei importieren)",
@@ -162,7 +162,7 @@ const locales = {
 		"modal_btn_confirm": "Confirm",
 		
 		// --- Home Page ---
-		"home_welcome_title": "Welcome!",
+		"home_welcome_title": "Welcome to Budget Book",
 		"home_welcome_text": "What would you like to start with?",
 		"home_btn_new": "Start New",
 		"home_btn_new_desc": "(Import CSV file)",
