@@ -13,11 +13,10 @@ Ich wollte diese Daten nicht unerreichbar irgendeinem Hersteller ausgeliefert se
 Als Lösung dafür startete ich "Haushaltsbuch". 
 
 Entwicklungsziele dabei sind: 
-	einfache Verständlichkeit,
-	Internationalisierung (trans.js),
-	Kompatibilität mit libreoffice & excel,
-	Im- und Exportierbarkeit der Daten (CSV und json), 
 	sehr gute Auswertungsfunktionen, 
+	kompatibilität mit libreoffice & excel,
+	internationalisierung (trans.js),
+	im- und Exportierbarkeit der Daten (CSV und json), 
 	keine Abhängigkeiten zu NodeJs oder Electron Bloatware,    
 	komplett lokaler Betrieb ohne Installation sowie
 Offener, strukturierter und dokumentierter Quellcode.
@@ -49,7 +48,7 @@ thus not allowing open, collaborative development of the program code.
 
 So I started "Haushaltsbuch". The development goals are:
  Open, documented source code, 
- easy to understand,
+ intuitive,
  internationalization (trans.js), 
  compatibility with LibreOffice & Excel, 
  import and exportability of data (CSV and JSON), 

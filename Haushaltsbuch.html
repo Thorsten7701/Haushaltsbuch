@@ -154,10 +154,21 @@
 		.text-3xs { font-size: 0.5rem; } /* 8px */
 		.text-2xs { font-size: 0.625rem; } /* 10px */
 		
+		/* Explorer Vorschau Fenster */
+		body.is-loading #appCont {
+			display: none !important;
+		}
 	</style>
 </head>
-<body class="bg-gray-100 text-gray-800 h-screen flex flex-col font-sans">
 
+<body class="bg-gray-100 text-gray-800 h-screen flex flex-col font-sans is-loading">
+<noscript>
+    <div style="padding: 20px; background: #fee; color: #911; border: 1px solid #911;">
+        Bitte öffnen sie diese Anwendung in einem &gtES2022 fähigen Browser. 
+    </div>
+</noscript>
+
+<div id="appCont" class="h-screen flex flex-col">
 	<header class="bg-white shadow p-3 flex justify-between items-center z-10">
 		<h1 class="text-xl font-bold text-[var(--color-scheme)] flex items-center gap-2">
 			</h1>
@@ -169,7 +180,7 @@
 		</nav>
 		
 		<div id="headerActions" class="hidden flex gap-4 items-center">
-			<button id="resetBtn" data-i18n="btn_reset"  class="hidden flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition-colors duration-200">
+			<button id="resetBtn" data-i18n="btn_reset"  class="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition-colors duration-200">
 			<i class="fas fa-trash"></i>	</button>
 			 <button id="saveJsonBtn"  data-i18n="btn_save_json"  class="hidden flex items-center gap-2 bg-[var(--color-scheme)] hover:bg-[var(--color-scheme-hover)] text-white px-3 py-1 rounded transition-colors duration-200">
 				<i class="fas fa-save"></i></button>
@@ -545,7 +556,7 @@
 			</div>
 		</div>
 	</div>
-	
+	</div>	
 	<script src="trans.js"></script> 
 	
 	<script>
@@ -3031,7 +3042,7 @@
 
 			if (pageName === 'home') {
 				DOM.pageHome.classList.remove('hidden');
-				DOM.headerActions.classList.add('hidden');
+				//DOM.headerActions.classList.add('hidden');
 
 			} else if (pageName === 'import') {
 				DOM.pageImport.classList.remove('hidden');
@@ -3066,7 +3077,7 @@
 				DOM.headerNav.classList.add('hidden');
 			}
 			
-			DOM.resetBtn.classList.toggle('hidden', pageName === 'home');
+			//DOM.resetBtn.classList.toggle('hidden', pageName === 'home');
 			DOM.exportBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
 			DOM.saveJsonBtn.classList.toggle('hidden', !dataLoaded || pageName === 'home');
 		}
@@ -3159,7 +3170,8 @@
 
 	window.addEventListener('DOMContentLoaded', () => {
 		Utils.updateTexts();
-		
+		document.body.classList.remove('is-loading');
+
 		ImportModule.init();
 		CategorizeModule.init();
 		VisualizeModule.init();
