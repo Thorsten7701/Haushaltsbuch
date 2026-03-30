@@ -150,6 +150,10 @@
 			position: relative;
 			top: 1px; /* Rückt den Tab nach oben */
 		}
+				
+		#visDate select {
+			cursor: pointer;
+		}
 		
 		.text-3xs { font-size: 0.5rem; } /* 8px */
 		.text-2xs { font-size: 0.625rem; } /* 10px */
@@ -225,7 +229,7 @@
 			<div class="flex items-center justify-center gap-6 mb-6">
 				<div class="flex items-center gap-2">
 					<label for="delimiterInput" class="text-gray-600 font-medium" data-i18n="label_delimiter"></label>
-					<input type="text" id="delimiterInput" value=";" maxlength="1" class="w-12 p-2 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-center font-mono" title="CSV Trennzeichen" />
+					<input type="text" id="delimiterInput" value=";" maxlength="1" class="w-12 p-2 border rounded outline-none text-center font-mono" title="CSV Trennzeichen" />
 				</div>
 				</div>
 
@@ -263,7 +267,7 @@
 			<p class="text-gray-600 mb-6" data-i18n="load_json_desc"></p>
 			
 			<div class="mb-8 flex items-center justify-center gap-3 bg-gray-50 p-3 rounded border border-gray-100">
-				<input type="checkbox" id="onlySetChk" class="w-4 h-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)] cursor-pointer">
+				<input type="checkbox" id="onlySetChk" class="w-4 h-4 text-[var(--color-scheme)] border-gray-300 rounded cursor-pointer">
 				<label for="onlySetsBox" class="text-sm text-gray-600 cursor-pointer select-none" data-i18n="load_settings_only"></label>
 			</div>
 
@@ -298,7 +302,7 @@
 					<div class="bg-white p-3 rounded shadow-sm space-y-3">
 						<div>
 							<label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="rules_search_label"></label>
-							<input type="text" id="ruleSearch" data-i18n="rules_search_placeholder" placeholder="z.B. Miete..." class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" disabled /> 
+							<input type="text" id="ruleSearch" data-i18n="rules_search_placeholder" placeholder="z.B. Miete..." class="w-full p-1 border rounded outline-none" disabled /> 
 							<div class="text-xs text-gray-500 mt-1 text-right" id="matchCountPreview">0 <span data-i18n="rules_match_preview"></span></div>
 						</div>
 						<div>
@@ -306,7 +310,7 @@
 							<input type="text" 
 								id="ruleCategory" 
 								list="categoryDatalist" 
-								class="w-full p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none" 
+								class="w-full p-1 border rounded outline-none" 
 								data-i18n="rules_category_placeholder"
 								disabled /> 
 							<datalist id="categoryDatalist">
@@ -314,7 +318,7 @@
 						</div>
 						
 						<div class="flex items-center pt-1">
-							<input type="checkbox" id="ruleFixcostChk" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded focus:ring-[var(--color-scheme)]" disabled>
+							<input type="checkbox" id="ruleFixcostChk" class="h-4 w-4 text-[var(--color-scheme)] border-gray-300 rounded " disabled>
 							<label for="ruleFixcostChk" class="ml-2 block text-sm text-gray-700 font-medium" data-i18n="rules_fixkosten_label">
 							</label>
 						</div>
@@ -375,13 +379,13 @@
 			<div id="visDate" class="flex items-center gap-4">
 				<div class="flex items-center gap-2">
 					<label for="dateStart" class="text-sm font-medium text-gray-600" data-i18n="vis_label_from">Von</label>
-					<input type="date" id="dateStart" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
+					<input type="date" id="dateStart" class="p-1 outline-none text-sm">
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="dateEnd" class="text-sm font-medium text-gray-600" data-i18n="vis_label_to">Bis</label>
-					<input type="date" id="dateEnd" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm">
+					<input type="date" id="dateEnd" class="p-1 outline-none text-sm">
 				</div>
-				<select id="dateRange" class="p-1 border rounded focus:ring-2 focus:ring-[var(--color-scheme)] outline-none text-sm bg-gray-50 text-gray-700 cursor-pointer hover:bg-white transition-colors">
+				<select id="dateRange" class="p-1 outline-none text-sm bg-gray-50 text-gray-700 cursor-pointer hover:bg-white transition-colors">
 					<option value="all">Alle</option> 
 					<option value="current">Aktueller Monat</option>
 					<option value="4">4 Monate</option>
@@ -2254,7 +2258,7 @@
 				const colorBox = `<span class="w-2 h-2 rounded-full inline-block" style="background-color: ${color};"></span>`;
 				
 				div.innerHTML = `
-					<input type="checkbox" id="chk-top-${index}" value="${cat}" class="w-3 h-3 text-[var(--color-scheme)] rounded focus:ring-0 cursor-pointer" ${isChecked ? 'checked' : ''}>
+					<input type="checkbox" id="chk-top-${index}" value="${cat}" class="w-3 h-3 text-[var(--color-scheme)] rounded cursor-pointer" ${isChecked ? 'checked' : ''}>
 					<label for="chk-top-${index}" class="text-xs text-gray-700 cursor-pointer flex-1 truncate select-none flex items-center gap-2">
 						${colorBox} ${cat}
 					</label>
@@ -2774,14 +2778,14 @@
 				datasets = [
 					// Einnahmen
 					{ label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
+					// Kumu Ausgaben
+					{ label: L('vis_summary_expenses'), data: totalMonthlyExpenseData, borderColor: '#EAB308', backgroundColor: 'rgba(234, 179, 8, 0.1)', fill: false, tension: 0.1, yAxisID: 'y' },
 					// Vari Ausgaben
 					{ label: L('vis_nested_variable'), data: varData, borderColor: DOM.CHART_COLORS[0], backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
 					// Fixe Augaben
-					{ label: L('vis_nested_fixed'), data: fixedData, borderColor: DOM.CHART_COLORS[4], backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
-					// Kumu Ausgaben
-					{ label: L('vis_summary_expenses'), data: totalMonthlyExpenseData, borderColor: '#EAB308', backgroundColor: 'rgba(234, 179, 8, 0.1)', fill: false, tension: 0.1, yAxisID: 'y' },
+					{ label: L('vis_nested_fixed'), data: fixedData, borderColor: '#A74151', backgroundColor: 'rgba(153, 102, 250, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
 					// Saldo
-					{ label: L('vis_summary_balance'), data: balanceData, borderColor: '#37A151', backgroundColor: 'rgba(55, 65, 81, 0.1)', fill: false, borderWidth: 2, tension: 0.1, yAxisID: 'y' }
+					// { label: L('vis_summary_balance'), data: balanceData, borderColor: '#37A151', backgroundColor: 'rgba(55, 65, 81, 0.1)', fill: false, tension: 0.1, yAxisID: 'y' }
 				];
 			}
 
@@ -2826,7 +2830,7 @@
 							responsive: true, maintainAspectRatio: false,
 							plugins: {
 								title: { display: true, text: title },
-								legend: { labels: { font: { size: isCustom ? 10 : 12 }, boxWidth: 8, boxHeight: 8 } },
+								legend: { labels: { font: { size: isCustom ? 10 : 12 }, boxWidth: 6, boxHeight: 6 } },
 								tooltip: {
 									mode: 'index', intersect: false,
 									callbacks: {
