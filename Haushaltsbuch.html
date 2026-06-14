@@ -1384,28 +1384,32 @@
 		}
 				
 		function _handleJsonInput(e) {
-			const file = e.target.files[0];
-			if (!file) return;
-			//2512 onlyRuleflg um bestehende Regeln auf frische Daten anzuwenden.
-			const onlySetChk = document.getElementById('onlySetChk');
-			const onlySetFlg = onlySetChk ? onlySetChk.checked : false;
-			const reader = new FileReader();
-			reader.onload = function(event) {
-				try {
-					const text = event.target.result;
-					const parsedData = JSON.parse(text);
-					if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) throw new Error(L("msg_json_invalid"));
-					const dataToLoad = onlySetFlg ? [] : parsedData.data;
-					// 2512 reloade selected top10 categories 
-					Store.loadState(dataToLoad, parsedData.rules, parsedData.currency, parsedData.selTopCats);
+		const file = e.target.files[0];
+		if (!file) return;
+		// 2512 onlyRuleflg um bestehende Regeln auf frische Daten anzuwenden
+		const onlySetChk = document.getElementById('onlySetChk');
+		const onlySetFlg = onlySetChk ? onlySetChk.checked : false;
+		const reader = new FileReader();
+		reader.onload = function(event) {
+			try {
+				const text = event.target.result;
+				const parsedData = JSON.parse(text);
+				if (!parsedData || !Array.isArray(parsedData.data) || !Array.isArray(parsedData.rules)) throw new Error(L("msg_json_invalid"));
+				// 2606 load existing data so we could land in categories View later.
+				const dataToLoad = onlySetFlg ? Store.getState().tableData : parsedData.data;
+				// 2512 reloade selected top10 categories
+				Store.loadState(dataToLoad, parsedData.rules, parsedData.currency, parsedData.selTopCats);
+				if (onlySetFlg) {
+					MainController.showPage('categorize');
+				} else {
 					MainController.showPage('visualize'); 
-				} catch (err) { Utils.showStatus("msg_crit_error", 'error', err.message); Store.reset(); }
-			};
-			reader.onerror = function() { Utils.showStatus("msg_crit_error", 'error', "Fehler beim Lesen"); };
-			reader.readAsText(file);
-			DOM.jsonInput.value = '';
+				}
+			} catch (err) { Utils.showStatus("msg_crit_error", 'error', err.message); Store.reset(); }
+		};
+		reader.onerror = function() { Utils.showStatus("msg_crit_error", 'error', "Fehler beim Lesen"); };
+		reader.readAsText(file);
+		DOM.jsonInput.value = '';
 		}
-
 		return {
 			init: function() {
 				DOM.startNewBtn.addEventListener('click', () => MainController.showPage('import'));
@@ -2203,9 +2207,24 @@
 		/* Daten Verarbeitung */
 		
 		function _getFilteredData(tableData) {
-			// DOM inputs sind bereits YYYY-MM-DD Strings
-			const startStr = DOM.dateStart.value || "0000-00-00";
-			const endStr = DOM.dateEnd.value || "9999-12-31"; // Y10K incoming :)
+			// DOM inputs sind bereits YYYY MM DD Strings
+			let startStr = DOM.dateStart.value;
+			let endStr = DOM.dateEnd.value;
+			//0626 fix Datenvalidierung
+			if (!startStr && !endStr) {
+				startStr = "0000-00-00";
+				endStr = "9999-12-31";
+			} else if (startStr && !endStr) {
+				endStr = startStr;
+			} else if (!startStr && endStr) {
+				startStr = endStr;
+			}
+
+			if (startStr > endStr) {
+				const temp = startStr;
+				startStr = endStr;
+				endStr = temp;
+			}
 
 			return tableData.filter(row => {
 				const d = row.Buchungstag; 
