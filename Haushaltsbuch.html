@@ -178,7 +178,6 @@
 			</h1>
 		<nav id="headerNav" class="hidden flex gap-2">
 			<button id="navHomeBtn" data-i18n="nav_home" class="px-3 py-1 rounded text-sm transition-colors duration-200 flex items-center gap-2 text-gray-500 hover:bg-gray-100"><i class="fas fa-home"></i></button>
-			<button id="navImportBtn" data-i18n="nav_import" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
 			<button id="navCategorizeBtn" data-i18n="nav_categorize" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
 			<button id="navVisualizeBtn" data-i18n="nav_visualize" class="px-3 py-1 rounded text-sm transition-colors duration-200"></button>
 		</nav>
@@ -573,7 +572,7 @@
 	 * @namespace DOM
 	 * @description Zentrales Objekt für zwischengespeicherte DOM Element Referenzen und statische Konfigurationswerte.
 	 */
-	const DOM = {
+const DOM = {
 		// Seiten
 		pageHome: document.getElementById('pageHome'), 
 		pageImport: document.getElementById('pageImport'),
@@ -585,7 +584,6 @@
 		headerNav: document.getElementById('headerNav'), 
 		headerActions: document.getElementById('headerActions'), 
 		navHomeBtn: document.getElementById('navHomeBtn'),
-		navImportBtn: document.getElementById('navImportBtn'),
 		navCategorizeBtn: document.getElementById('navCategorizeBtn'),
 		navVisualizeBtn: document.getElementById('navVisualizeBtn'),
 		resetBtn: document.getElementById('resetBtn'),
@@ -661,8 +659,8 @@
 		fixeAusgabenTableEl: document.getElementById('fixe-ausgaben-table'),
 		
 		visTabTop10: document.getElementById('visTabTop10'),
-        visContTop10: document.getElementById('visContTop10'),
-        tblTop10: document.getElementById('tblTop10'),
+		visContTop10: document.getElementById('visContTop10'),
+		tblTop10: document.getElementById('tblTop10'),
 		
 		// Pie Tabs
 		visTabPie: document.getElementById('visTabPie'),
@@ -3146,7 +3144,6 @@
 			
 			const navs = [
 				{ id: 'home', el: DOM.navHomeBtn, page: 'home', alwaysEnabled: true },
-				{ id: 'import', el: DOM.navImportBtn, page: 'import', alwaysEnabled: true },
 				{ id: 'categorize', el: DOM.navCategorizeBtn, page: 'categorize', alwaysEnabled: false },
 				{ id: 'visualize', el: DOM.navVisualizeBtn, page: 'visualize', alwaysEnabled: false }
 			];
@@ -3292,7 +3289,6 @@
 		return {
 			init: function() {
 				DOM.navHomeBtn.addEventListener('click', () => showPage('home'));
-				DOM.navImportBtn.addEventListener('click', () => showPage('import'));
 				DOM.navCategorizeBtn.addEventListener('click', () => showPage('categorize'));
 				DOM.navVisualizeBtn.addEventListener('click', () => showPage('visualize'));
 
