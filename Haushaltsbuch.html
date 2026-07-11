@@ -2576,9 +2576,11 @@ const DOM = {
 						label: category, 
 						data: data,
 						borderColor: color,
-						backgroundColor: color, 
-						fill: false,
-						tension: 0.2
+						// 260710 Nutze transparente berge statt langweiliger Linien  
+						backgroundColor: color + '33', 
+						fill: true,
+						tension: 0.2,
+						borderWidth: 0
 					});
 				});
 			}
@@ -2588,7 +2590,7 @@ const DOM = {
 				topLineChart: { labels: sortedMonths, datasets: topLineChartDatasets }
 			};
 		}
-
+		
 		/**
 		 * Koordiniert die Datenverarbeitungsroutinen. 
 		 */
@@ -2860,7 +2862,7 @@ const DOM = {
 					// Einnahmen
 					{ label: L('vis_summary_income'), data: incomeData, borderColor: DOM.OVERVIEW_CHART_COLORS.INCOME, backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
 					// Kumu Ausgaben
-					{ label: L('vis_summary_expenses'), data: totalMonthlyExpenseData, borderColor: '#EAB308', backgroundColor: 'rgba(234, 179, 8, 0.1)', fill: false, tension: 0.1, yAxisID: 'y' },
+					{ label: L('vis_summary_expenses'), data: totalMonthlyExpenseData, borderColor: '#aA1348', backgroundColor: 'rgba(234, 100, 60, 0.1)', fill: true, tension: 0.1, yAxisID: 'y' },
 					// Vari Ausgaben
 					{ label: L('vis_nested_variable'), data: varData, borderColor: DOM.CHART_COLORS[0], backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.2, yAxisID: 'y' },
 					// Fixe Augaben
